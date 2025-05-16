@@ -1,6 +1,25 @@
-# Xmake cache
-.xmake/
-build/
+*.o
+*.obj
+*.out
+*.exe
+*.lib
+*.ilk
+*.a
+*.la
+*.lo
+*.dll
+*.so
+*.dylib
 
-# MacOS Cache
-.DS_Store
+*.rdi
+*.pdb
+*.sym
+
+*.png
+*.jpg
+*.jpeg
+*.json
+
+build/
+.cache/
+.vscode/

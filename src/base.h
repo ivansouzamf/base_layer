@@ -3,60 +3,130 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// macros
+#if !defined(__x86_64__) && !defined(_WIN64)
+	#error "32 bit is not supported"
+#endif
+
+#if defined(__linux__)
+	#define BASE_OS_LINUX
+#elif defined(_WIN32)
+	#define BASE_OS_WINDOWS
+#else
+	#error "OS not supported"
+#endif
+
+#if defined(DEBUG)
+	#if defined(BASE_OS_LINUX)
+		#define ASSERT_CALL asm("int $3")
+	#elif defined(BASE_OS_WINDOWS)
+		#define ASSERT_CALL __debugbreak()
+	#endif
+	// TODO: maybe log or print the msg to stderr (or debug output on windows)
+	#define ASSERT(cond, msg) do { if (!(cond)) ASSERT_CALL; } while (0)
+#else
+	// TODO: implement ASSERT for release builds
+	#define ASSERT(cond, msg)
+#endif
+
+#if defined(BASE_OS_LINUX)
+	#define BASE_PATH_SEPARATOR '/'
+#elif defined(BASE_OS_WINDOWS)
+	#define BASE_PATH_SEPARATOR '\\'
+#endif
+
+#define KILOBYTE(v) v * 1024
+#define MEGABYTE(v) KILOBYTE(v) * 1024
+#define GIGABYTE(v) MEGABYTE(v) * 1024
+
+#define DEFAULT_STRING_SIZE 20
+
 // unsinged ints
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef uint8_t U8;
+typedef uint16_t U16;
+typedef uint32_t U32;
+typedef uint64_t U64;
 // signed ints
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
+typedef int8_t S8;
+typedef int16_t S16;
+typedef int32_t S32;
+typedef int64_t S64;
 // floats
-typedef float f32;
-typedef double f64;
-typedef long double f80;
+typedef float F32;
+typedef double F64;
+typedef long double F80;
 // others
-typedef size_t usize;
-typedef char c8;
-typedef u8 byte;
-typedef bool b8;
+typedef size_t Usize;
+typedef bool Bool;
+typedef char C8;
+typedef U8 Byte;
 
 // custom allocators
 struct Allocator {
-	void* (*alloc)(usize size);
-	void* (*realloc)(void* ptr, usize size);
+	void* (*alloc)(Usize size);
+	void* (*realloc)(void* ptr, Usize size);
 	void (*free)(void* ptr);
 };
 
 // strings
-#define DEFAULT_STRING_SIZE 20
 struct String8 {
-	c8* data;
-	u32 len;
-	usize reserved;
-
-	// NOTE: these are all overloads to make string initialization easier.
-	// (almost) no crazy c++ stuff
-	String8();
-	String8(const c8* in_string); // NOTE: the input string has to be null terminated
-	String8 operator=(const c8* in_string); // NOTE: the input string has to be null terminated
+	C8* data;
+	Usize len;
+	Usize reserved;
 };
 
 // utils
-struct Buffer {
-	byte* data;
-	usize size;
+template <typename T>
+struct Slice {
+	Allocator allocator;
+	T* data;
+	Usize len;
+
+	T& operator[](Usize index);
+};
+
+template <typename T>
+struct Dynamic_Array {
+	Allocator allocator;
+	T* data;
+	Usize len;
+	Usize reserved;
+
+	T& operator[](Usize index);
 };
 
 // strings
 void set_string_allocator(Allocator allocator);
-String8 create_string(u32 reserve = DEFAULT_STRING_SIZE);
-String8 create_string_from(const c8* in_string); // NOTE: the input string has to be null terminated
-void assign_string(String8* string, const c8* in_string); // NOTE: the input string has to be null terminated
+Allocator* get_string_allocator();
+String8 create_string(Usize reserve = DEFAULT_STRING_SIZE);
+String8 create_string_from(const C8* in_string);
+String8 lit_string(const C8* in_string);
+String8 clone_string(String8 string);
+String8 assign_string(String8 string, const C8* in_string);
+void append_string(String8* string, String8 in_string);
 void destroy_string(String8* string);
 
 // utils
-Buffer read_entire_file(String8 path, Allocator allocator);
+template <typename T>
+Slice<T> create_slice(Usize len, Allocator allocator);
+template <typename T>
+void destroy_slice(Slice<T>* slice);
+
+template <typename T>
+Dynamic_Array<T> create_dynamic_array(Usize size, Allocator allocator);
+template <typename T>
+void append_dynamic_array(Dynamic_Array<T>* array, T element);
+template <typename T>
+void destroy_dynamic_array(Dynamic_Array<T>* array);
+
+// platform calls
+void print_fmt(String8 fmt, ...);
+String8 get_dir_from_path(String8 path);
+String8 get_exe_path();
+String8 get_user_dir();
+String8 get_config_dir();
+Slice<Byte> read_entire_file(String8 path, Allocator allocator);
 String8 read_entire_file_as_string(String8 path);
+
+// entry point definition
+S32 entry_point(S32 argc, C8* argv[]);
