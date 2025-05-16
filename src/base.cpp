@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+// custom allocators
+
 inline void* allocator_alloc(Allocator allocator, Usize size) {
     return allocator.alloc(allocator.data, size);
 }
@@ -71,6 +73,9 @@ void arena_free(void* data, void* ptr) {
     // can't free individual components of an arena
     return;
 }
+
+
+// strings
 
 static Allocator string_allocator = {
 	.alloc = nullptr,
@@ -181,6 +186,9 @@ void destroy_string(String8* string) {
 	}
 }
 
+
+// data structures
+
 template <typename T>
 Slice<T> create_slice(Usize len, Allocator allocator) {
 	Slice<T> slice = {
@@ -245,6 +253,9 @@ T& Dynamic_Array<T>::operator[](Usize index) {
 	ASSERT(index < len, "Trying to access element out of bounds\n");
 	return data[index];
 }
+
+
+// platform calls
 
 void print_fmt(String8 fmt, ...) {
 	String8 temp = create_string(fmt.len + 1);
