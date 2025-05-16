@@ -3,11 +3,16 @@
 // only here for malloc
 #include <stdlib.h>
 
+void* malloc_alloc(void* data, Usize size);
+void* malloc_realloc(void* data, void* ptr, Usize size);
+void malloc_free(void* data, void* ptr);
+
 S32 entry_point(S32 argc, C8* argv[]) {
     Allocator gpa = {
-        malloc,
-        realloc,
-        free
+        .data = nullptr,
+        .alloc = malloc_alloc,
+        .realloc = malloc_realloc,
+        .free = malloc_free,
     };
     set_string_allocator(gpa);
 
@@ -44,4 +49,14 @@ S32 entry_point(S32 argc, C8* argv[]) {
     }
 
     return 0;
+}
+
+inline void* malloc_alloc(void* data, Usize size) {
+    return malloc(size);
+}
+inline void* malloc_realloc(void* data, void* ptr, Usize size) {
+    return realloc(ptr, size);
+}
+inline void malloc_free(void* data, void* ptr) {
+    return free(ptr);
 }

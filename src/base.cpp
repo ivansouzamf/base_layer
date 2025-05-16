@@ -6,6 +6,72 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+inline void* allocator_alloc(Allocator allocator, Usize size) {
+    return allocator.alloc(allocator.data, size);
+}
+
+inline void* allocator_realloc(Allocator allocator, void* ptr, Usize size) {
+    return allocator.realloc(allocator.data, ptr, size);
+}
+
+inline void allocator_free(Allocator allocator, void* ptr) {
+    return allocator.free(allocator.data, ptr);
+}
+
+Arena_Allocator arena_init(void* buffer, Usize size) {
+    Arena_Allocator arena = {
+        .current = buffer,
+        .buffer = buffer,
+        .buffer_size = size,
+    };
+
+    return arena;
+}
+
+Allocator arena_get_allocator(Arena_Allocator* arena) {
+    Allocator allocator = {
+        .data = arena,
+        .alloc = arena_alloc,
+        .realloc = arena_realloc,
+        .free = arena_free,
+    };
+
+    return allocator;
+}
+
+void arena_free_all(Arena_Allocator* arena) {
+    arena->current = arena->buffer;
+}
+
+void* arena_alloc(void* data, Usize size) {
+    Arena_Allocator* arena = (Arena_Allocator*) data;
+
+    Bool cond = (Byte*) arena->current + size <= (Byte*) arena->buffer + arena->buffer_size;
+    ASSERT(cond, "Cannot allocate more than the size of the arena\n");
+
+    void* ptr = arena->current;
+    arena->current = (Byte*) arena->current + size;
+
+    return ptr;
+}
+
+void* arena_realloc(void* data, void* ptr, Usize size) {
+    if (size <= 0) {
+        arena_free(data, ptr);
+        return nullptr;
+    }
+
+    void* new_ptr = arena_alloc(data, size);
+    // TODO: copy memory when realocating
+
+    return new_ptr;
+}
+
+void arena_free(void* data, void* ptr) {
+    // can't free individual components of an arena
+    return;
+}
+
 static Allocator string_allocator = {
 	.alloc = nullptr,
 	.realloc = nullptr,
@@ -22,16 +88,16 @@ void set_string_allocator(Allocator allocator) {
 	check_string_allocator();
 }
 
-Allocator* get_string_allocator() {
+Allocator get_string_allocator() {
 	check_string_allocator();
-	return &string_allocator;
+	return string_allocator;
 }
 
 String8 create_string(Usize reserve) {
 	check_string_allocator();
 
 	String8 string = {
-	    .data = (C8*) string_allocator.alloc(reserve),
+	    .data = (C8*) allocator_alloc(string_allocator, reserve),
 	    .len = 0,
 	    .reserved = reserve,
 	};
@@ -56,7 +122,7 @@ String8 lit_string(const C8* in_string) {
 		.len = len,
 		.reserved = 0,
 	};
-	
+
 	return string;
 }
 
@@ -77,8 +143,8 @@ String8 assign_string(String8 string, const C8* in_string) {
 
 	Usize len = strlen(in_string);
 	if (len > result.reserved) {
-		string_allocator.free(result.data);
-		result.data = (C8*) string_allocator.alloc(len);
+		allocator_free(string_allocator, result.data);
+		result.data = (C8*) allocator_alloc(string_allocator, len);
 		result.reserved = len;
 	}
 
@@ -93,10 +159,10 @@ String8 assign_string(String8 string, const C8* in_string) {
 void append_string(String8* string, String8 in_string) {
 	check_string_allocator();
 	ASSERT(string->reserved != 0, "Cannot modify a string literal");
-	
+
 	if (in_string.len > string->reserved - string->len) {
 		Usize new_size = in_string.len + string->len;
-		string->data = (C8*) string_allocator.realloc(string->data, new_size);
+		string->data = (C8*) allocator_realloc(string_allocator, string->data, new_size);
 		string->reserved = new_size;
 	}
 
@@ -108,7 +174,7 @@ void destroy_string(String8* string) {
 	check_string_allocator();
 
 	if (string->data != nullptr && string->reserved > 0) {
-		string_allocator.free(string->data);
+		allocator_free(string_allocator, string->data);
 		string->data = nullptr;
 		string->len = 0;
 		string->reserved = 0;
@@ -119,7 +185,7 @@ template <typename T>
 Slice<T> create_slice(Usize len, Allocator allocator) {
 	Slice<T> slice = {
 		.allocator = allocator,
-		.data = (T*) allocator.alloc(sizeof(T) * len),
+		.data = (T*) allocator_alloc(allocator, sizeof(T) * len),
 		.len = len,
 	};
 
@@ -128,7 +194,7 @@ Slice<T> create_slice(Usize len, Allocator allocator) {
 
 template <typename T>
 void destroy_slice(Slice<T>* slice) {
-	slice->allocator.free(slice->data);
+	allocator_free(slice->allocator, slice->data);
 	slice->data = nullptr;
 	slice->len = 0;
 }
@@ -143,7 +209,7 @@ template <typename T>
 Dynamic_Array<T> create_dynamic_array(Usize size, Allocator allocator) {
 	Dynamic_Array<T> array = {
 		.allocator = allocator,
-		.data = (T*) allocator.alloc(sizeof(T) * size),
+		.data = (T*) allocator_alloc(allocator, sizeof(T) * size),
 		.len = 0,
 		.reserved = size,
 	};
@@ -158,7 +224,7 @@ void append_dynamic_array(Dynamic_Array<T>* array, T element) {
 		// allocations
 		Usize slots_to_grow = 1;
 		Usize new_size = (sizeof(T) * slots_to_grow) + (array->reserved * sizeof(T));
-		array->data = (T*) array->allocator.realloc(array->data, new_size);
+		array->data = (T*) allocator_realloc(array->allocator, array->data, new_size);
 		array->reserved += slots_to_grow;
 	}
 
@@ -168,7 +234,7 @@ void append_dynamic_array(Dynamic_Array<T>* array, T element) {
 
 template <typename T>
 void destroy_dynamic_array(Dynamic_Array<T>* array) {
-	array->allocator.free(array->data);
+	allocator_free(array->allocator, array->data);
 	array->data = nullptr;
 	array->len = 0;
 	array->reserved = 0;
@@ -209,7 +275,7 @@ String8 get_dir_from_path(String8 path) {
 }
 
 String8 read_entire_file_as_string(String8 path) {
-	Slice<Byte> file_buff = read_entire_file(path, *get_string_allocator());
+	Slice<Byte> file_buff = read_entire_file(path, get_string_allocator());
 	String8 file_string = {
 		.data = (C8*) file_buff.data,
 		.len = file_buff.len,

@@ -63,9 +63,16 @@ typedef U8 Byte;
 
 // custom allocators
 struct Allocator {
-	void* (*alloc)(Usize size);
-	void* (*realloc)(void* ptr, Usize size);
-	void (*free)(void* ptr);
+	void* data;
+	void* (*alloc)(void* data, Usize size);
+	void* (*realloc)(void* data, void* ptr, Usize size);
+	void (*free)(void* data, void* ptr);
+};
+
+struct Arena_Allocator {
+    void* current;
+    void* buffer;
+    Usize buffer_size;
 };
 
 // strings
@@ -95,9 +102,21 @@ struct Dynamic_Array {
 	T& operator[](Usize index);
 };
 
+// custom allocators
+void* allocator_alloc(Allocator allocator, Usize size);
+void* allocator_realloc(Allocator allocator, void* ptr, Usize size);
+void allocator_free(Allocator allocator, void* ptr);
+
+Arena_Allocator arena_init(void* buffer, Usize size);
+Allocator arena_get_allocator(Arena_Allocator* arena);
+void arena_free_all(void* data);
+void* arena_alloc(void* data, Usize size);
+void* arena_realloc(void* data, void* ptr, Usize size);
+void arena_free(void* data, void* ptr);
+
 // strings
 void set_string_allocator(Allocator allocator);
-Allocator* get_string_allocator();
+Allocator get_string_allocator();
 String8 create_string(Usize reserve = DEFAULT_STRING_SIZE);
 String8 create_string_from(const C8* in_string);
 String8 lit_string(const C8* in_string);
