@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+// math
+
+template <typename T>
+T abs(T num) {
+    return (num < 0) ? -num : num;
+}
+
+
 // custom allocators
 
 inline void* allocator_alloc(Allocator allocator, Usize size) {
@@ -112,7 +120,7 @@ String8 create_string(Usize reserve) {
 	return string;
 }
 
-String8 create_string_from(const C8* in_string) {
+String8 create_string_from_cstring(const C8* in_string) {
 	Usize len = strlen(in_string);
 	String8 string = create_string(len);
 	string = assign_string(string, in_string);
@@ -160,6 +168,104 @@ String8 assign_string(String8 string, const C8* in_string) {
 
 	return result;
 }
+
+void reverse_string(String8* string) {
+    Usize start = 0;
+    Usize end = string->len - 1;
+
+    while (start < end) {
+        C8 temp = string->data[start];
+        string->data[start] = string->data[end];
+        string->data[end] = temp;
+        start += 1;
+        end -= 1;
+    }
+}
+
+static inline Usize get_string_len_int(U64 num) {
+    Usize len = 0;
+    while (num > 0) {
+        num /= 10;
+        len += 1;
+    }
+
+    return len;
+}
+
+String8 create_string_from_U64(U64 num) {
+    if (num == 0) {
+        return create_string_from_cstring("0");
+    }
+
+    Usize len = get_string_len_int(num);
+    String8 string = create_string(len);
+
+    for (Usize i = 0; i != len; i += 1) {
+        C8 char_num = '0' + (num % 10);
+        num /= 10;
+        append_string(&string, lit_string(&char_num));
+    }
+
+    reverse_string(&string);
+
+    return string;
+}
+
+String8 create_string_from_S64(S64 num) {
+    U64 abs_num = abs(num);
+    Usize len = get_string_len_int(abs_num);
+    String8 string = {};
+
+    if (num == 0) {
+        return create_string_from_cstring("0");
+    } else if (num < 0) {
+        len += 1;
+    }
+    string = create_string(len);
+
+    for (Usize i = 0; i != string.reserved; i += 1) {
+        if (i == string.reserved - 1) {
+            append_string(&string, lit_string("-"));
+            break;
+        }
+
+        C8 char_num = '0' + (abs_num % 10);
+        abs_num /= 10;
+        append_string(&string, lit_string(&char_num));
+    }
+
+    reverse_string(&string);
+
+    return string;
+}
+
+// String8 format_string(String8 in_string) {
+//     #define FORMAT_MAX_VARS 1024
+//     U32 tagged[FORMAT_MAX_VARS] = {};
+
+//     for (U32 i = 0; i < in_string.len; i += 1) {
+//         // bounds checking
+//         if (i == in_string.len) {
+//             break;
+//         }
+
+//         if (is_string.data[i] == '%') {
+//             switch (is_string.data[i] + 1) {
+//                 case 'i': // fallthrought
+//                 case 'd': fmt_sint(); break;
+//                 case 'u': fmt_uint(); break;
+//                 case 'f': // fallthrought
+//                 case 'F': fmt_float(); break;
+//                 case 'e': // fallthrought
+//                 case 'E': break; // TODO: scientific notation
+//                 case 'a':
+//                 case 'A': break; // hexadecimal floating point
+//                 case 'c': fmt_char(); break;
+//                 case 's': fmt_string(); break;
+//             }
+//         }
+//     }
+// }
 
 void append_string(String8* string, String8 in_string) {
 	check_string_allocator();

@@ -15,7 +15,7 @@ String8 get_exe_path() {
 		return {};
 	}
 
-	return create_string_from(temp_buff);
+	return create_string_from_cstring(temp_buff);
 }
 
 String8 get_user_dir() {
@@ -24,7 +24,7 @@ String8 get_user_dir() {
 		return {};
 	}
 
-	return create_string_from(dir);
+	return create_string_from_cstring(dir);
 }
 
 String8 get_config_dir() {
@@ -32,7 +32,7 @@ String8 get_config_dir() {
 
 	C8* dir = getenv("XDG_CONFIG_HOME");
 	if (dir != nullptr) {
-		return create_string_from(dir);
+		return create_string_from_cstring(dir);
 	}
 
 	String8 final_dir;

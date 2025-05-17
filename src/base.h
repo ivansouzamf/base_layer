@@ -63,6 +63,11 @@ typedef char C8;
 typedef U8 Byte;
 
 
+// math
+template <typename T>
+T abs(T num);
+
+
 // custom allocators
 
 struct Allocator {
@@ -101,10 +106,15 @@ struct String8 {
 void set_string_allocator(Allocator allocator);
 Allocator get_string_allocator();
 String8 create_string(Usize reserve = DEFAULT_STRING_SIZE);
-String8 create_string_from(const C8* in_string);
+String8 create_string_from_U64(U64 num);
+String8 create_string_from_S64(S64 num);
+String8 create_string_from_F64(U64 num);
+String8 create_string_from_cstring(const C8* in_string);
 String8 lit_string(const C8* in_string);
 String8 clone_string(String8 string);
 String8 assign_string(String8 string, const C8* in_string);
+void reverse_string(String8* string);
+// String8 format_string(Strin8 in_string);
 void append_string(String8* string, String8 in_string);
 void destroy_string(String8* string);
 
