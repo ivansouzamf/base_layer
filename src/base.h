@@ -29,7 +29,7 @@
 	#define ASSERT(cond, msg) do { if (!(cond)) ASSERT_CALL; } while (0)
 #else
 	// TODO: implement ASSERT for release builds
-	#define ASSERT(cond, msg)
+	#define ASSERT(cond, msg) do { if (!(cond)){} } while (0)
 #endif
 
 #if defined(BASE_OS_LINUX)

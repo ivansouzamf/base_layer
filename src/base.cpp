@@ -121,6 +121,8 @@ void* arena_realloc(void* data, void* ptr, Usize size) {
 
 void arena_free(void* data, void* ptr) {
     // can't free individual components of an arena
+    (void) data;
+    (void) ptr;
     return;
 }
 
@@ -158,7 +160,7 @@ String8 create_string_from_U64(U64 num, Allocator allocator) {
     String8 string = alloc_string(lenght, allocator);
 
     for (Usize i = 0; i != lenght; i += 1) {
-        C8 char_num = '0' + (num % 10);
+        C8 char_num = '0' + (C8) (num % 10);
         string.data[i] = char_num;
         num /= 10;
     }
@@ -169,7 +171,7 @@ String8 create_string_from_U64(U64 num, Allocator allocator) {
 }
 
 String8 create_string_from_S64(S64 num, Allocator allocator) {
-    U64 abs_num = abs(num);
+    U64 abs_num = (U64) abs(num);
     Usize lenght = get_string_len_int(abs_num);
     String8 string = {};
 
@@ -186,7 +188,7 @@ String8 create_string_from_S64(S64 num, Allocator allocator) {
             break;
         }
 
-        C8 char_num = '0' + (abs_num % 10);
+        C8 char_num = '0' + (C8) (abs_num % 10);
         string.data[i] = char_num;
 
         abs_num /= 10;
@@ -198,6 +200,8 @@ String8 create_string_from_S64(S64 num, Allocator allocator) {
 }
 
 String8 create_string_from_F64(U64 num) {
+    // TODO: implement this
+    (void) num;
     return {};
 }
 

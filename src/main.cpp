@@ -18,6 +18,9 @@ S32 entry_point(S32 argc, C8* argv[]) {
     void* buffer = allocator_alloc(gpa, size);
     Arena_Allocator temp_arena = arena_init(buffer, size);
     init_temp_allocator(&temp_arena);
+    
+    (void) argc;
+    (void) argv;
 
     String8 newline = lit_string("\n");
 
@@ -42,6 +45,7 @@ S32 entry_point(S32 argc, C8* argv[]) {
     for (Usize i = 0; i < myslice.size; i += 1) {
         myslice[i] = (U32) i;
         U32 myint = myslice[i];
+        (void) myint;
     }
 
     Dynamic_Array<U32> mydynarray = create_dynamic_array<U32>(20, gpa);
@@ -52,17 +56,21 @@ S32 entry_point(S32 argc, C8* argv[]) {
     for (Usize i = 0; i < mydynarray.lenght; i += 1) {
         mydynarray[i] = (U32) i;
         U32 myint = mydynarray[i];
+        (void) myint;
     }
 
     return 0;
 }
 
 inline void* malloc_alloc(void* data, Usize size) {
+    (void) data;
     return malloc(size);
 }
 inline void* malloc_realloc(void* data, void* ptr, Usize size) {
+    (void) data;
     return realloc(ptr, size);
 }
 inline void malloc_free(void* data, void* ptr) {
+    (void) data;
     return free(ptr);
 }
