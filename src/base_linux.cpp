@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
 	return entry_point(argc, argv);
 }
 
-String8 get_exe_path() {
+String8 get_exe_path(Allocator allocator) {
 	C8 temp_buff[PATH_MAX + 1] = {};
 
 	Usize path_size = readlink("/proc/self/exe", temp_buff, PATH_MAX);
@@ -15,50 +15,54 @@ String8 get_exe_path() {
 		return {};
 	}
 
-	return create_string_from_cstring(temp_buff);
+	return create_string_from_cstring(temp_buff, allocator);
 }
 
-String8 get_user_dir() {
+String8 get_user_dir(Allocator allocator) {
 	C8* dir = getenv("HOME");
 	if (dir == nullptr) {
 		return {};
 	}
 
-	return create_string_from_cstring(dir);
+	return create_string_from_cstring(dir, allocator);
 }
 
-String8 get_config_dir() {
+String8 get_config_dir(Allocator allocator) {
 	// NOTE: specified here https://specifications.freedesktop.org/basedir-spec/latest/#variables
 
 	C8* dir = getenv("XDG_CONFIG_HOME");
 	if (dir != nullptr) {
-		return create_string_from_cstring(dir);
+		return create_string_from_cstring(dir, allocator);
 	}
 
 	String8 final_dir;
 
 	// if $XDG_CONFIG_HOME not setted we default to $HOME/.config
 	String8 config_dir = lit_string("/.config");
-	String8 home_dir = get_user_dir();
-	if (home_dir.len == 0) {
+	String8 home_dir = get_user_dir(allocator);
+	if (home_dir.lenght == 0) {
 		goto exit_and_clean;
 	}
 
-	final_dir = create_string(home_dir.len + config_dir.len);
+	final_dir = alloc_string(home_dir.lenght + config_dir.lenght, allocator);
 	append_string(&final_dir, home_dir);
 	append_string(&final_dir, config_dir);
 
 	exit_and_clean:
-	destroy_string(&home_dir);
+	free_string(&home_dir);
 
 	return final_dir;
 }
 
 Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
-	// FIXME: convert 'path' to an actual null-terminated string
-	// because that could cause problems on the future
+    // convert path to cstring
+	C8* path_cstring = (C8*) allocator_alloc(get_temp_allocator(), path.lenght + 1);
+	copy_memory(path_cstring, path.data, path.lenght);
+	path_cstring[path.lenght] = '\0';
+
 	FILE* file = fopen(path.data, "rb");
 	if (file == nullptr) {
+	    arena_free_all((Arena_Allocator*) get_temp_allocator().data);
 		return {};
 	}
 
@@ -67,11 +71,12 @@ Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
 	fseek(file, 0, SEEK_SET);
 
 	Slice<Byte> file_buff = create_slice<Byte>(file_size, allocator);
-	Usize read = fread(file_buff.data, file_buff.len, 1, file);
-	if ((read * file_buff.len) != file_buff.len) {
+	Usize read = fread(file_buff.data, file_buff.size, 1, file);
+	if ((read * file_buff.size) != file_buff.size) {
 		destroy_slice(&file_buff);
 	}
 
+	arena_free_all((Arena_Allocator*) get_temp_allocator().data);
 	fclose(file);
 
 	return file_buff;

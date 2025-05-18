@@ -2,11 +2,12 @@
 
 // TODO: move all code that require these includes to it's
 // own platform implementation
-#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 
-// math
+// ====================
+// ======= Math =======
+// ====================
 
 template <typename T>
 T abs(T num) {
@@ -14,7 +15,48 @@ T abs(T num) {
 }
 
 
-// custom allocators
+// =====================
+// ======= Utils =======
+// =====================
+
+void copy_memory(void* dest, const void* source, Usize size) {
+    Byte* dst = (Byte*) dest;
+    Byte* src = (Byte*) source;
+    for (Usize i = 0; i < size; i += 4) {
+        dst[i + 0] = src[i + 0];
+        dst[i + 1] = src[i + 1];
+        dst[i + 2] = src[i + 2];
+        dst[i + 3] = src[i + 3];
+    }
+}
+
+void zero_memory(void* dest, Usize size) {
+    Byte* dst = (Byte*) dest;
+    for (Usize i = 0; i < size; i += 4) {
+        dst[i + 0] = 0;
+        dst[i + 1] = 0;
+        dst[i + 2] = 0;
+        dst[i + 3] = 0;
+    }
+}
+
+Usize cstring_len(const C8* cstring) {
+    Usize i = 0;
+    while (cstring[i] != '\0') {
+        i += 1;
+    }
+
+    return i;
+}
+
+
+// =================================
+// ======= Custom Allocators =======
+// =================================
+
+inline Bool allocator_is_null(Allocator allocator) {
+    return allocator.alloc == nullptr && allocator.realloc == nullptr && allocator.free == nullptr;
+}
 
 inline void* allocator_alloc(Allocator allocator, Usize size) {
     return allocator.alloc(allocator.data, size);
@@ -83,65 +125,93 @@ void arena_free(void* data, void* ptr) {
 }
 
 
-// strings
+// =======================
+// ======= Strings =======
+// =======================
 
-static Allocator string_allocator = {
-	.alloc = nullptr,
-	.realloc = nullptr,
-	.free = nullptr,
-};
-
-static inline void check_string_allocator() {
-	Bool cond = string_allocator.alloc != nullptr && string_allocator.realloc != nullptr && string_allocator.free != nullptr;
-	ASSERT(cond, "string_allocator not setted\n");
-}
-
-void set_string_allocator(Allocator allocator) {
-	string_allocator = allocator;
-	check_string_allocator();
-}
-
-Allocator get_string_allocator() {
-	check_string_allocator();
-	return string_allocator;
-}
-
-String8 create_string(Usize reserve) {
-	check_string_allocator();
-
+String8 init_string(Allocator allocator, C8* data, Usize lenght) {
 	String8 string = {
-	    .data = (C8*) allocator_alloc(string_allocator, reserve),
-	    .len = 0,
-	    .reserved = reserve,
-	};
-
-	memset(string.data, 0, string.len);
-
-	return string;
-}
-
-String8 create_string_from_cstring(const C8* in_string) {
-	Usize len = strlen(in_string);
-	String8 string = create_string(len);
-	string = assign_string(string, in_string);
-
-	return string;
-}
-
-String8 lit_string(const C8* in_string) {
-	Usize len = strlen(in_string);
-	String8 string = {
-		.data = (C8*) in_string,
-		.len = len,
-		.reserved = 0,
+	    .allocator = allocator,
+		.data = data,
+		.lenght = lenght,
 	};
 
 	return string;
 }
 
-String8 clone_string(String8 string) {
-    String8 new_string = create_string(string.len);
-    memcpy(new_string.data, string.data, string.len);
+static inline Usize get_string_len_int(U64 num) {
+    Usize lenght = 0;
+    while (num > 0) {
+        num /= 10;
+        lenght += 1;
+    }
+
+    return lenght;
+}
+
+String8 create_string_from_U64(U64 num, Allocator allocator) {
+    if (num == 0) {
+        return create_string_from_cstring("0", allocator);
+    }
+
+    Usize lenght = get_string_len_int(num);
+    String8 string = alloc_string(lenght, allocator);
+
+    for (Usize i = 0; i != lenght; i += 1) {
+        C8 char_num = '0' + (num % 10);
+        string.data[i] = char_num;
+        num /= 10;
+    }
+
+    reverse_string(&string);
+
+    return string;
+}
+
+String8 create_string_from_S64(S64 num, Allocator allocator) {
+    U64 abs_num = abs(num);
+    Usize lenght = get_string_len_int(abs_num);
+    String8 string = {};
+
+    if (num == 0) {
+        return create_string_from_cstring("0", allocator);
+    } else if (num < 0) {
+        lenght += 1;
+    }
+    string = alloc_string(lenght, allocator);
+
+    for (Usize i = 0; i != string.lenght; i += 1) {
+        if (i == string.lenght - 1) {
+            string.data[i] = '-';
+            break;
+        }
+
+        C8 char_num = '0' + (abs_num % 10);
+        string.data[i] = char_num;
+
+        abs_num /= 10;
+    }
+
+    reverse_string(&string);
+
+    return string;
+}
+
+String8 create_string_from_F64(U64 num) {
+    return {};
+}
+
+String8 create_string_from_cstring(const C8* cstring, Allocator allocator) {
+	Usize lenght = cstring_len(cstring);
+	String8 string = alloc_string(lenght, allocator);
+	string = assign_string(string, cstring);
+
+	return string;
+}
+
+String8 clone_string(String8 string, Allocator allocator) {
+    String8 new_string = alloc_string(string.lenght, allocator);
+    copy_memory(new_string.data, string.data, string.lenght);
 
     return new_string;
 }
@@ -149,29 +219,32 @@ String8 clone_string(String8 string) {
 // NOTE: DO NOT USE THIS FOR STRING LITERALS!
 // use 'lit_string()' instead
 String8 assign_string(String8 string, const C8* in_string) {
-	check_string_allocator();
-	ASSERT(string.reserved != 0, "Cannot modify a string literal");
+    ASSERT(!allocator_is_null(string.allocator), "Trying to modify non dynamic string\n");
 
-	String8 result = string;
-
-	Usize len = strlen(in_string);
-	if (len > result.reserved) {
-		allocator_free(string_allocator, result.data);
-		result.data = (C8*) allocator_alloc(string_allocator, len);
-		result.reserved = len;
+	Usize lenght = cstring_len(in_string);
+	if (lenght > string.lenght) {
+		string.data = (C8*) allocator_realloc(string.allocator, string.data, lenght);
 	}
 
-	result.len = len;
+	string.lenght = lenght;
+	copy_memory(string.data, in_string, string.lenght);
 
-	memset(result.data, 0, result.len);
-	memcpy(result.data, in_string, result.len);
+	return string;
+}
 
-	return result;
+void append_string(String8* string, String8 in_string) {
+	ASSERT(!allocator_is_null(string->allocator), "Trying to modify non dynamic string\n");
+
+	Usize new_size = in_string.lenght + string->lenght;
+	string->data = (C8*) allocator_realloc(string->allocator, string->data, new_size);
+
+	copy_memory(string->data + string->lenght, in_string.data, in_string.lenght);
+	string->lenght += in_string.lenght;
 }
 
 void reverse_string(String8* string) {
     Usize start = 0;
-    Usize end = string->len - 1;
+    Usize end = string->lenght - 1;
 
     while (start < end) {
         C8 temp = string->data[start];
@@ -182,125 +255,39 @@ void reverse_string(String8* string) {
     }
 }
 
-static inline Usize get_string_len_int(U64 num) {
-    Usize len = 0;
-    while (num > 0) {
-        num /= 10;
-        len += 1;
-    }
+String8 alloc_string(Usize lenght, Allocator allocator) {
+	String8 string = {
+	    .allocator = allocator,
+	    .data = (C8*) allocator_alloc(allocator, lenght),
+	    .lenght = lenght,
+	};
 
-    return len;
+	zero_memory(string.data, string.lenght);
+
+	return string;
 }
 
-String8 create_string_from_U64(U64 num) {
-    if (num == 0) {
-        return create_string_from_cstring("0");
-    }
+void free_string(String8* string) {
+	ASSERT(!allocator_is_null(string->allocator), "Trying to free non dynamic string\n");
 
-    Usize len = get_string_len_int(num);
-    String8 string = create_string(len);
-
-    for (Usize i = 0; i != len; i += 1) {
-        C8 char_num = '0' + (num % 10);
-        num /= 10;
-        append_string(&string, lit_string(&char_num));
-    }
-
-    reverse_string(&string);
-
-    return string;
-}
-
-String8 create_string_from_S64(S64 num) {
-    U64 abs_num = abs(num);
-    Usize len = get_string_len_int(abs_num);
-    String8 string = {};
-
-    if (num == 0) {
-        return create_string_from_cstring("0");
-    } else if (num < 0) {
-        len += 1;
-    }
-    string = create_string(len);
-
-    for (Usize i = 0; i != string.reserved; i += 1) {
-        if (i == string.reserved - 1) {
-            append_string(&string, lit_string("-"));
-            break;
-        }
-
-        C8 char_num = '0' + (abs_num % 10);
-        abs_num /= 10;
-        append_string(&string, lit_string(&char_num));
-    }
-
-    reverse_string(&string);
-
-    return string;
-}
-
-// String8 format_string(String8 in_string) {
-//     #define FORMAT_MAX_VARS 1024
-//     U32 tagged[FORMAT_MAX_VARS] = {};
-
-//     for (U32 i = 0; i < in_string.len; i += 1) {
-//         // bounds checking
-//         if (i == in_string.len) {
-//             break;
-//         }
-
-//         if (is_string.data[i] == '%') {
-//             switch (is_string.data[i] + 1) {
-//                 case 'i': // fallthrought
-//                 case 'd': fmt_sint(); break;
-//                 case 'u': fmt_uint(); break;
-//                 case 'f': // fallthrought
-//                 case 'F': fmt_float(); break;
-//                 case 'e': // fallthrought
-//                 case 'E': break; // TODO: scientific notation
-//                 case 'a':
-//                 case 'A': break; // hexadecimal floating point
-//                 case 'c': fmt_char(); break;
-//                 case 's': fmt_string(); break;
-//             }
-//         }
-//     }
-// }
-
-void append_string(String8* string, String8 in_string) {
-	check_string_allocator();
-	ASSERT(string->reserved != 0, "Cannot modify a string literal");
-
-	if (in_string.len > string->reserved - string->len) {
-		Usize new_size = in_string.len + string->len;
-		string->data = (C8*) allocator_realloc(string_allocator, string->data, new_size);
-		string->reserved = new_size;
-	}
-
-	memcpy(string->data + string->len, in_string.data, in_string.len);
-	string->len += in_string.len;
-}
-
-void destroy_string(String8* string) {
-	check_string_allocator();
-
-	if (string->data != nullptr && string->reserved > 0) {
-		allocator_free(string_allocator, string->data);
+	if (string->data != nullptr) {
+		allocator_free(string->allocator, string->data);
 		string->data = nullptr;
-		string->len = 0;
-		string->reserved = 0;
+		string->lenght = 0;
 	}
 }
 
 
-// data structures
+// ===============================
+// ======= Data Structures =======
+// ===============================
 
 template <typename T>
-Slice<T> create_slice(Usize len, Allocator allocator) {
+Slice<T> create_slice(Usize size, Allocator allocator) {
 	Slice<T> slice = {
 		.allocator = allocator,
-		.data = (T*) allocator_alloc(allocator, sizeof(T) * len),
-		.len = len,
+		.data = (T*) allocator_alloc(allocator, sizeof(T) * size),
+		.size = size,
 	};
 
 	return slice;
@@ -310,12 +297,12 @@ template <typename T>
 void destroy_slice(Slice<T>* slice) {
 	allocator_free(slice->allocator, slice->data);
 	slice->data = nullptr;
-	slice->len = 0;
+	slice->size = 0;
 }
 
 template <typename T>
 T& Slice<T>::operator[](Usize index) {
-	ASSERT(index < len, "Trying to access element out of bounds\n");
+	ASSERT(index < size, "Trying to access element out of bounds\n");
 	return data[index];
 }
 
@@ -324,7 +311,7 @@ Dynamic_Array<T> create_dynamic_array(Usize size, Allocator allocator) {
 	Dynamic_Array<T> array = {
 		.allocator = allocator,
 		.data = (T*) allocator_alloc(allocator, sizeof(T) * size),
-		.len = 0,
+		.lenght = 0,
 		.reserved = size,
 	};
 
@@ -333,7 +320,7 @@ Dynamic_Array<T> create_dynamic_array(Usize size, Allocator allocator) {
 
 template <typename T>
 void append_dynamic_array(Dynamic_Array<T>* array, T element) {
-	if (array->len >= array->reserved) {
+	if (array->lenght >= array->reserved) {
 		// TODO: maybe we should allocate more than we need when resizing to avoid future
 		// allocations
 		Usize slots_to_grow = 1;
@@ -342,65 +329,87 @@ void append_dynamic_array(Dynamic_Array<T>* array, T element) {
 		array->reserved += slots_to_grow;
 	}
 
-	array->data[array->len] = element;
-	array->len += 1;
+	array->data[array->lenght] = element;
+	array->lenght += 1;
 }
 
 template <typename T>
 void destroy_dynamic_array(Dynamic_Array<T>* array) {
 	allocator_free(array->allocator, array->data);
 	array->data = nullptr;
-	array->len = 0;
+	array->lenght = 0;
 	array->reserved = 0;
 }
 
 template <typename T>
 T& Dynamic_Array<T>::operator[](Usize index) {
-	ASSERT(index < len, "Trying to access element out of bounds\n");
+	ASSERT(index < lenght, "Trying to access element out of bounds\n");
 	return data[index];
 }
 
 
-// platform calls
+// =====================
+// ======= Utils =======
+// =====================
 
 void print_fmt(String8 fmt, ...) {
-	String8 temp = create_string(fmt.len + 1);
-	memcpy(temp.data, fmt.data, fmt.len);
-	temp.data[fmt.len] = '\0';
+    C8* temp = (C8*) allocator_alloc(get_temp_allocator(), fmt.lenght + 1);
+	copy_memory(temp, fmt.data, fmt.lenght);
+	temp[fmt.lenght] = '\0';
 
 	va_list args;
 	va_start(args, fmt);
-	vprintf(temp.data, args);
+	vprintf(temp, args);
 	va_end(args);
 
-	destroy_string(&temp);
+	arena_free_all((Arena_Allocator*) get_temp_allocator().data);
 }
 
-String8 get_dir_from_path(String8 path) {
+String8 get_dir_from_path(String8 path, Allocator allocator) {
 	U32 last_slash = 0;
-    for (U32 i = 0; i < path.len; i += 1) {
+    for (U32 i = 0; i < path.lenght; i += 1) {
         if (path.data[i] == BASE_PATH_SEPARATOR) {
             last_slash = i;
         }
     }
 
     // we only clone the string and cap the length
-    String8 dir = clone_string(path);
-    dir.len = last_slash;
+    String8 dir = clone_string(path, allocator);
+    dir.lenght = last_slash;
 
     return dir;
 }
 
-String8 read_entire_file_as_string(String8 path) {
-	Slice<Byte> file_buff = read_entire_file(path, get_string_allocator());
+String8 read_entire_file_as_string(String8 path, Allocator allocator) {
+	Slice<Byte> file_buff = read_entire_file(path, allocator);
 	String8 file_string = {
 		.data = (C8*) file_buff.data,
-		.len = file_buff.len,
-		.reserved = file_buff.len,
+		.lenght = file_buff.size,
 	};
 
 	return file_string;
 }
+
+
+// =================================
+// ======= Global Allocators =======
+// =================================
+
+static Allocator g_temp_allocator = {
+    .data = nullptr,
+    .alloc = nullptr,
+    .realloc = nullptr,
+    .free = nullptr,
+};
+
+void init_temp_allocator(Arena_Allocator* arena) {
+    g_temp_allocator = arena_get_allocator(arena);
+}
+
+Allocator get_temp_allocator() {
+    return g_temp_allocator;
+}
+
 
 // OS specific code
 #if defined(BASE_OS_LINUX)

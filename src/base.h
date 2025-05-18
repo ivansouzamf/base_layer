@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// macros && typedefs
+// ==================================
+// ======= Macros && Typedefs =======
+// ==================================
 
 #if !defined(__x86_64__) && !defined(_WIN64)
 	#error "32 bit is not supported"
@@ -40,8 +42,6 @@
 #define MEGABYTE(v) KILOBYTE(v) * 1024
 #define GIGABYTE(v) MEGABYTE(v) * 1024
 
-#define DEFAULT_STRING_SIZE 20
-
 // unsinged ints
 typedef uint8_t U8;
 typedef uint16_t U16;
@@ -63,20 +63,39 @@ typedef char C8;
 typedef U8 Byte;
 
 
-// math
+// ====================
+// ======= Math =======
+// ====================
+
 template <typename T>
 T abs(T num);
 
 
-// custom allocators
+// =====================
+// ======= Utils =======
+// =====================
+
+void copy_memory(void* dest, const void* source, Usize size);
+void zero_memory(void* dest, Usize size);
+Usize cstring_len(const C8* cstring);
+
+
+// =================================
+// ======= Custom Allocators =======
+// =================================
+
+typedef void* (*Allocator_Alloc)(void* data, Usize size);
+typedef void* (*Allocator_Realloc)(void* data, void* ptr, Usize size);
+typedef void (*Allocator_Free)(void* data, void* ptr);
 
 struct Allocator {
 	void* data;
-	void* (*alloc)(void* data, Usize size);
-	void* (*realloc)(void* data, void* ptr, Usize size);
-	void (*free)(void* data, void* ptr);
+	Allocator_Alloc alloc;
+	Allocator_Realloc realloc;
+	Allocator_Free free;
 };
 
+Bool allocator_is_null(Allocator allocator);
 void* allocator_alloc(Allocator allocator, Usize size);
 void* allocator_realloc(Allocator allocator, void* ptr, Usize size);
 void allocator_free(Allocator allocator, void* ptr);
@@ -89,49 +108,51 @@ struct Arena_Allocator {
 
 Arena_Allocator arena_init(void* buffer, Usize size);
 Allocator arena_get_allocator(Arena_Allocator* arena);
-void arena_free_all(void* data);
+void arena_free_all(Arena_Allocator* arena);
 void* arena_alloc(void* data, Usize size);
 void* arena_realloc(void* data, void* ptr, Usize size);
 void arena_free(void* data, void* ptr);
 
 
-// strings
+// =======================
+// ======= Strings =======
+// =======================
 
 struct String8 {
+    Allocator allocator;
 	C8* data;
-	Usize len;
-	Usize reserved;
+	Usize lenght;
 };
 
-void set_string_allocator(Allocator allocator);
-Allocator get_string_allocator();
-String8 create_string(Usize reserve = DEFAULT_STRING_SIZE);
-String8 create_string_from_U64(U64 num);
-String8 create_string_from_S64(S64 num);
-String8 create_string_from_F64(U64 num);
-String8 create_string_from_cstring(const C8* in_string);
-String8 lit_string(const C8* in_string);
-String8 clone_string(String8 string);
+#define lit_string(cstring) init_string({}, (C8*) cstring, sizeof(cstring) - 1)
+String8 init_string(Allocator allocator, C8* data, Usize len);
+String8 create_string_from_U64(U64 num, Allocator allocator);
+String8 create_string_from_S64(S64 num, Allocator allocator);
+String8 create_string_from_F64(U64 num, Allocator allocator);
+String8 create_string_from_cstring(const C8* cstring, Allocator allocator);
+String8 clone_string(String8 string, Allocator allocator);
 String8 assign_string(String8 string, const C8* in_string);
-void reverse_string(String8* string);
-// String8 format_string(Strin8 in_string);
 void append_string(String8* string, String8 in_string);
-void destroy_string(String8* string);
+void reverse_string(String8* string);
+String8 alloc_string(Usize lenght, Allocator allocator);
+void free_string(String8* string);
 
 
-// data structures
+// ===============================
+// ======= Data Structures =======
+// ===============================
 
 template <typename T>
 struct Slice {
 	Allocator allocator;
 	T* data;
-	Usize len;
+	Usize size;
 
 	T& operator[](Usize index);
 };
 
 template <typename T>
-Slice<T> create_slice(Usize len, Allocator allocator);
+Slice<T> create_slice(Usize size, Allocator allocator);
 template <typename T>
 void destroy_slice(Slice<T>* slice);
 
@@ -139,7 +160,7 @@ template <typename T>
 struct Dynamic_Array {
 	Allocator allocator;
 	T* data;
-	Usize len;
+	Usize lenght;
 	Usize reserved;
 
 	T& operator[](Usize index);
@@ -153,16 +174,25 @@ template <typename T>
 void destroy_dynamic_array(Dynamic_Array<T>* array);
 
 
-// platform calls
+// =====================
+// ======= Utils =======
+// =====================
 
 void print_fmt(String8 fmt, ...);
-String8 get_dir_from_path(String8 path);
-String8 get_exe_path();
-String8 get_user_dir();
-String8 get_config_dir();
+String8 get_dir_from_path(String8 path, Allocator allocator);
+String8 get_exe_path(Allocator allocator);
+String8 get_user_dir(Allocator allocator);
+String8 get_config_dir(Allocator allocator);
 Slice<Byte> read_entire_file(String8 path, Allocator allocator);
-String8 read_entire_file_as_string(String8 path);
+String8 read_entire_file_as_string(String8 path, Allocator allocator);
 
+
+// =================================
+// ======= Global Allocators =======
+// =================================
+
+void init_temp_allocator(void* buffer);
+Allocator get_temp_allocator();
 
 // entry point definition
 S32 entry_point(S32 argc, C8* argv[]);
