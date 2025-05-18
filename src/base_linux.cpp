@@ -52,12 +52,9 @@ String8 get_config_dir(Allocator allocator) {
 }
 
 Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
-    // convert path to cstring
-	C8* path_cstring = (C8*) allocator_alloc(get_temp_allocator(), path.lenght + 1);
-	copy_memory(path_cstring, path.data, path.lenght);
-	path_cstring[path.lenght] = '\0';
+	C8* path_cstring = clone_string_to_cstring(path, get_temp_allocator());
 
-	FILE* file = fopen(path.data, "rb");
+	FILE* file = fopen(path_cstring, "rb");
 	if (file == nullptr) {
 	    arena_free_all((Arena_Allocator*) get_temp_allocator().data);
 		return {};

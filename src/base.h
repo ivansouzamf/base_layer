@@ -131,6 +131,7 @@ String8 create_string_from_S64(S64 num, Allocator allocator);
 String8 create_string_from_F64(U64 num, Allocator allocator);
 String8 create_string_from_cstring(const C8* cstring, Allocator allocator);
 String8 clone_string(String8 string, Allocator allocator);
+C8* clone_string_to_cstring(String8 string, Allocator allocator);
 String8 assign_string(String8 string, const C8* in_string);
 void append_string(String8* string, String8 in_string);
 void reverse_string(String8* string);

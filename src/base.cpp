@@ -216,6 +216,14 @@ String8 clone_string(String8 string, Allocator allocator) {
     return new_string;
 }
 
+C8* clone_string_to_cstring(String8 string, Allocator allocator) {
+   	C8* cstring = (C8*) allocator_alloc(allocator, string.lenght + 1);
+	copy_memory(cstring, string.data, string.lenght);
+	cstring[string.lenght] = '\0';
+
+	return cstring;
+}
+
 // NOTE: DO NOT USE THIS FOR STRING LITERALS!
 // use 'lit_string()' instead
 String8 assign_string(String8 string, const C8* in_string) {
@@ -353,13 +361,11 @@ T& Dynamic_Array<T>::operator[](Usize index) {
 // =====================
 
 void print_fmt(String8 fmt, ...) {
-    C8* temp = (C8*) allocator_alloc(get_temp_allocator(), fmt.lenght + 1);
-	copy_memory(temp, fmt.data, fmt.lenght);
-	temp[fmt.lenght] = '\0';
+    C8* fmt_cstring = clone_string_to_cstring(fmt, get_temp_allocator());
 
 	va_list args;
 	va_start(args, fmt);
-	vprintf(temp, args);
+	vprintf(fmt_cstring, args);
 	va_end(args);
 
 	arena_free_all((Arena_Allocator*) get_temp_allocator().data);

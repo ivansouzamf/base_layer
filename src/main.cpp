@@ -34,7 +34,7 @@ S32 entry_point(S32 argc, C8* argv[]) {
     print_fmt(config_dir); print_fmt(newline);
 
     String8 u64_string = create_string_from_U64(123456, gpa);
-    String8 s64_string = create_string_from_S64(-654321, gpa);
+    String8 S64_string = create_string_from_S64(-654321, gpa);
 
     String8 myfile = read_entire_file_as_string(lit_string("./build.sh"), gpa);
 
