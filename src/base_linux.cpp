@@ -35,21 +35,18 @@ String8 get_config_dir(Allocator allocator) {
 		return create_string_from_cstring(dir, allocator);
 	}
 
-	String8 final_dir;
-
 	// if $XDG_CONFIG_HOME not setted we default to $HOME/.config
 	String8 config_dir = lit_string("/.config");
-	String8 home_dir = get_user_dir(allocator);
+	String8 home_dir = get_user_dir(get_temp_allocator());
 	if (home_dir.lenght == 0) {
-		goto exit_and_clean;
+	    return {};
 	}
 
-	final_dir = alloc_string(home_dir.lenght + config_dir.lenght, allocator);
-	append_string(&final_dir, home_dir);
-	append_string(&final_dir, config_dir);
+	String8 final_dir = alloc_string(home_dir.lenght + config_dir.lenght, allocator);
+	copy_memory(final_dir.data, home_dir.data, home_dir.lenght);
+	copy_memory(final_dir.data + home_dir.lenght, config_dir.data, config_dir.lenght);
 
-	exit_and_clean:
-	free_string(&home_dir);
+	arena_free_all((Arena_Allocator*) get_temp_allocator().data);
 
 	return final_dir;
 }
