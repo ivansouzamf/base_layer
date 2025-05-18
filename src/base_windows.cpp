@@ -84,6 +84,7 @@ Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
 		}
 		
 		total_read += (Usize) read;
+		read = 0;
 		LARGE_INTEGER offset = { .QuadPart = (LONGLONG) read };
 		SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
 	}
