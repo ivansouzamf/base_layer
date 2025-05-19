@@ -8,7 +8,7 @@ set sources=../src/main.cpp
 set common_opts=/nologo /W4 /Wall /wd4711 /wd5045 /GR- /EHa- /std:c++20 /arch:AVX2 /Fe:%program_name%
 set debug_opts=/Od /Zi /DWIN_CONSOLE_MODE /DDEBUG
 set release_opts=/O2 /DWIN_WINDOWS_MODE /DRELEASE
-set libraries=kernel32.lib ucrt.lib vcruntime.lib msvcrt.lib
+set libraries=kernel32.lib user32.lib ucrt.lib vcruntime.lib msvcrt.lib
 set link_opts=/link %libraries% /NODEFAULTLIB /INCREMENTAL:NO
 
 if "%1" == "debug" (

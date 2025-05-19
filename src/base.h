@@ -28,8 +28,7 @@
 	// TODO: maybe log or print the msg to stderr (or debug output on windows)
 	#define ASSERT(cond, msg) do { if (!(cond)) ASSERT_CALL; } while (0)
 #else
-	// TODO: implement ASSERT for release builds
-	#define ASSERT(cond, msg) do { if (!(cond)){} } while (0)
+	#define ASSERT(cond, msg) do { if (!(cond)) assert_release(msg, __FILE__, __LINE__); } while (0)
 #endif
 
 #if defined(BASE_OS_LINUX)
@@ -179,6 +178,7 @@ void destroy_dynamic_array(Dynamic_Array<T>* array);
 // ======= Utils =======
 // =====================
 
+void assert_release(const C8* message, const C8* file, const U32 line);
 void print_fmt(String8 fmt, ...);
 String8 get_dir_from_path(String8 path, Allocator allocator);
 String8 get_exe_path(Allocator allocator);

@@ -20,6 +20,13 @@ int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int
 }
 #endif
 
+void assert_release(const C8* message, const C8* file, const U32 line) {
+	C8 temp[1024];
+	wsprintfA(temp, "%s\n%s:%u\n", message, file, line);
+	MessageBox(nullptr, temp, nullptr, MB_OK | MB_ICONERROR | MB_TASKMODAL);
+	ExitProcess(1);
+}
+
 String8 get_exe_path(Allocator allocator) {
 	C8 temp_buff[MAX_PATH + 1] = {};
 	
