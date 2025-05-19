@@ -99,7 +99,7 @@ void* arena_alloc(void* data, Usize size) {
     Arena_Allocator* arena = (Arena_Allocator*) data;
 
     Bool cond = (Byte*) arena->current + size <= (Byte*) arena->buffer + arena->buffer_size;
-    ASSERT(cond, "Cannot allocate more than the size of the arena\n");
+    ASSERT(cond, "Cannot allocate more than the size of the arena");
 
     void* ptr = arena->current;
     arena->current = (Byte*) arena->current + size;
@@ -231,7 +231,7 @@ C8* clone_string_to_cstring(String8 string, Allocator allocator) {
 // NOTE: DO NOT USE THIS FOR STRING LITERALS!
 // use 'lit_string()' instead
 String8 assign_string(String8 string, const C8* in_string) {
-    ASSERT(!allocator_is_null(string.allocator), "Trying to modify non dynamic string\n");
+    ASSERT(!allocator_is_null(string.allocator), "Trying to modify non dynamic string");
 
 	Usize lenght = cstring_len(in_string);
 	if (lenght > string.lenght) {
@@ -245,7 +245,7 @@ String8 assign_string(String8 string, const C8* in_string) {
 }
 
 void append_string(String8* string, String8 in_string) {
-	ASSERT(!allocator_is_null(string->allocator), "Trying to modify non dynamic string\n");
+	ASSERT(!allocator_is_null(string->allocator), "Trying to modify non dynamic string");
 
 	Usize new_size = in_string.lenght + string->lenght;
 	string->data = (C8*) allocator_realloc(string->allocator, string->data, new_size);
@@ -280,7 +280,7 @@ String8 alloc_string(Usize lenght, Allocator allocator) {
 }
 
 void free_string(String8* string) {
-	ASSERT(!allocator_is_null(string->allocator), "Trying to free non dynamic string\n");
+	ASSERT(!allocator_is_null(string->allocator), "Trying to free non dynamic string");
 
 	if (string->data != nullptr) {
 		allocator_free(string->allocator, string->data);
@@ -314,7 +314,7 @@ void destroy_slice(Slice<T>* slice) {
 
 template <typename T>
 T& Slice<T>::operator[](Usize index) {
-	ASSERT(index < size, "Trying to access element out of bounds\n");
+	ASSERT(index < size, "Trying to access element out of bounds");
 	return data[index];
 }
 
@@ -355,7 +355,7 @@ void destroy_dynamic_array(Dynamic_Array<T>* array) {
 
 template <typename T>
 T& Dynamic_Array<T>::operator[](Usize index) {
-	ASSERT(index < lenght, "Trying to access element out of bounds\n");
+	ASSERT(index < lenght, "Trying to access element out of bounds");
 	return data[index];
 }
 
