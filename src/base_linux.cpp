@@ -7,6 +7,34 @@ int main(int argc, char* argv[]) {
 	return entry_point(argc, argv);
 }
 
+void assert_release(const C8* message, const C8* file, const U32 line) {
+    const C8* yad_cmd = "yad --title=\"Error\" --text=\"%s\" --button=OK:0 --fixed --window-icon=error --image=dialog-error --center";
+    const C8* zenity_cmd = "zenity --text=\"%s\" --error";
+    C8* cmd;
+
+    C8 final_msg[1024] = {};
+    C8 final_cmd[2048] = {};
+
+    snprintf(final_msg, sizeof(final_msg), "%s\n%s:%u\n", message, file, line);
+
+    if (system("zenity --help > /dev/null") == 0) {
+        cmd = (C8*) zenity_cmd;
+    } else if (system("yad --help > /dev/null") == 0) {
+        cmd = (C8*) yad_cmd;
+    } else {
+        // if we can't display a dialog window just print it
+        // on stderr
+        fprintf(stderr, "\033[31mError\033[0m: %s\n", final_msg);
+        goto exit;
+    }
+
+    snprintf(final_cmd, sizeof(final_cmd), cmd, final_msg);
+    system(final_cmd);
+
+    exit:
+    exit(-1);
+}
+
 String8 get_exe_path(Allocator allocator) {
 	C8 temp_buff[PATH_MAX + 1] = {};
 

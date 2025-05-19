@@ -18,7 +18,7 @@ S32 entry_point(S32 argc, C8* argv[]) {
     void* buffer = allocator_alloc(gpa, size);
     Arena_Allocator temp_arena = arena_init(buffer, size);
     init_temp_allocator(&temp_arena);
-    
+
     (void) argc;
     (void) argv;
 
