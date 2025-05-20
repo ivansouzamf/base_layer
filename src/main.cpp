@@ -38,8 +38,11 @@ S32 entry_point(S32 argc, C8* argv[]) {
 
     String8 u64_string = create_string_from_U64(123456, gpa);
     String8 S64_string = create_string_from_S64(-654321, gpa);
+    (void) u64_string;
+    (void) S64_string;
 
     String8 myfile = read_entire_file_as_string(lit_string("./build.sh"), gpa);
+    (void) myfile;
 
     Slice<U32> myslice = create_slice<U32>(20, gpa);
     for (Usize i = 0; i < myslice.size; i += 1) {
