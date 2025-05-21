@@ -1,19 +1,7 @@
 #include "base.cpp"
 
-// only here for malloc
-#include <stdlib.h>
-
-void* malloc_alloc(void* data, Usize size);
-void* malloc_realloc(void* data, void* ptr, Usize size);
-void malloc_free(void* data, void* ptr);
-
 S32 entry_point(S32 argc, C8* argv[]) {
-    Allocator gpa = {
-        .data = nullptr,
-        .alloc = malloc_alloc,
-        .realloc = malloc_realloc,
-        .free = malloc_free,
-    };
+    Allocator gpa = get_heap_allocator();
     Usize size = KILOBYTE(2);
     void* buffer = allocator_alloc(gpa, size);
     Arena_Allocator temp_arena = arena_init(buffer, size);
@@ -63,17 +51,4 @@ S32 entry_point(S32 argc, C8* argv[]) {
     }
 
     return 0;
-}
-
-inline void* malloc_alloc(void* data, Usize size) {
-    (void) data;
-    return malloc(size);
-}
-inline void* malloc_realloc(void* data, void* ptr, Usize size) {
-    (void) data;
-    return realloc(ptr, size);
-}
-inline void malloc_free(void* data, void* ptr) {
-    (void) data;
-    return free(ptr);
 }

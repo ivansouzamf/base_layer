@@ -194,6 +194,7 @@ String8 read_entire_file_as_string(String8 path, Allocator allocator);
 
 void init_temp_allocator(void* buffer);
 Allocator get_temp_allocator();
+Allocator get_heap_allocator();
 
 // entry point definition
 S32 entry_point(S32 argc, C8* argv[]);

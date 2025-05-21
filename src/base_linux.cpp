@@ -103,3 +103,29 @@ Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
 
 	return file_buff;
 }
+
+static inline void* malloc_alloc(void* data, Usize size) {
+    (void) data;
+    return malloc(size);
+}
+
+static inline void* malloc_realloc(void* data, void* ptr, Usize size) {
+    (void) data;
+    return realloc(ptr, size);
+}
+
+static inline void malloc_free(void* data, void* ptr) {
+    (void) data;
+    return free(ptr);
+}
+
+Allocator get_heap_allocator() {
+    Allocator heap = {
+        .data = nullptr,
+        .alloc = malloc_alloc,
+        .realloc = malloc_realloc,
+        .free = malloc_free,
+    };
+
+    return heap;
+}
