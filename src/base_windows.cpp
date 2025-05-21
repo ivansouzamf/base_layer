@@ -102,3 +102,35 @@ Slice<Byte> read_entire_file(String8 path, Allocator allocator) {
 
 	return file_buff;
 }
+
+static HANDLE g_win_heap = nullptr;
+
+static inline void* heap_alloc(void* data, Usize size) {
+    (void) data;
+    return HeapAlloc(g_win_heap, 0, size);
+}
+
+static inline void* heap_realloc(void* data, void* ptr, Usize size) {
+    (void) data;
+    return HeapReAlloc(g_win_heap, 0, ptr, size);
+}
+
+static inline void heap_free(void* data, void* ptr) {
+    (void) data;
+    HeapFree(g_win_heap, 0, ptr);
+}
+
+Allocator get_heap_allocator() {
+    Allocator heap = {
+        .data = nullptr,
+        .alloc = heap_alloc,
+        .realloc = heap_realloc,
+        .free = heap_free,
+    };
+    
+    if (g_win_heap == nullptr) {
+    	g_win_heap = GetProcessHeap();
+    }
+
+    return heap;
+}
