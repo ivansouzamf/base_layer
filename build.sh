@@ -4,7 +4,7 @@ build_dir="./build"
 compiler="clang"
 
 sources="./src/main.cpp"
-common_opts="-Wall -std=c++14 -nostdinc++ -nostdlib++ -march=x86-64-v3"
+common_opts="-Wall -std=c++20 -nostdinc++ -nostdlib++ -march=x86-64-v3"
 debug_opts="-O0 -g -DDEBUG"
 release_opts="-O2 -DRELEASE"
 
