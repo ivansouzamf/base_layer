@@ -43,7 +43,7 @@ NoType* ArenaAllocator::Alloc(Usize size)
 	return ptr;
 }
 
-NoType* ArenaAllocator::Realloc(NoType* ptr, Usize size)
+NoType* ArenaAllocator::Realloc(NoType*, Usize)
 {
 	ASSERT(false, "ArenaAllocator doesn't support 'Realloc()'");
 	return nullptr;

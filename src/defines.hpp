@@ -39,16 +39,19 @@ typedef void NoType;
 
 #if defined(_MSC_VER)
     #define BASE_CC_MSVC
+    #define BASE_DEBUGTRAP() __debugbreak()
 #elif defined(__clang__)
     #define BASE_CC_CLANG
+    #define BASE_DEBUGTRAP() __builtin_debugtrap()
 #elif defined(__GNUC__)
     #define BASE_CC_GCC
+    #define BASE_DEBUGTRAP() asm("int $3")
 #else
     #error "Compiler not supported"
 #endif
 
-#if defined(_DEBUG)
-	#define _ASSERT_ALWAYS(cond, msg) do { if (!(cond)) __debugbreak(); } while (0)
+#if defined(DEBUG)
+	#define _ASSERT_ALWAYS(cond, msg) do { if (!(cond)) BASE_DEBUGTRAP(); } while (0)
 	#define _ASSERT(cond, msg) _ASSERT_ALWAYS(cond, msg)
 #else
 	void _AssertRel(const C8* msg, const C8* file, const U32 line);
