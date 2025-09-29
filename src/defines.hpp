@@ -31,8 +31,10 @@ typedef void NoType;
 
 #if defined(_WIN32)
     #define BASE_OS_WIN32
+    #define BASE_PATH_SEPARATOR '\\'
 #elif defined(__linux__)
     #define BASE_OS_LINUX
+    #define BASE_PATH_SEPARATOR '/'
 #else
 	#error "OS not supported"
 #endif

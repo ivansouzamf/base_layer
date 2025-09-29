@@ -1,6 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#define DWORD_MAX 0xffffffffUL
+
 
 // =================================
 // ======= Custom Allocators =======
@@ -47,12 +49,12 @@ NoType Thread::Run()
     ResumeThread(m_handle);
 }
 
-NoType Stop()
+NoType Thread::Stop()
 {
     SuspendThread(m_handle);
 }
 
-NoType Join()
+NoType Thread::Join()
 {
     WaitForSingleObject(m_handle, INFINITE);
 }
@@ -101,6 +103,116 @@ NoType Mutex::Unlock()
 }
 
 
+// ==========================
+// ======= Filesystem =======
+// ==========================
+
+Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
+{
+    HANDLE file = CreateFileA(
+        path.CString(),
+        GENERIC_READ, FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+    if (file == INVALID_HANDLE_VALUE)
+        return Slice<Byte>(nullptr, nullptr, 0);
+
+    LARGE_INTEGER _fileSize;
+    if (GetFileSizeEx(file, &_fileSize))
+    {
+        CloseHandle(file);
+        return Slice<Byte>(nullptr, nullptr, 0);
+    }
+
+    Usize fileSize = static_cast<Usize>(_fileSize.QuadPart);
+    Slice<Byte> buffer = Slice<Byte>(allocator, fileSize);
+
+    // NOTE: Since 'ReadFile()' only takes a 32bit int as input (DWORD),
+    // we have to do multiple calls to it until we actually have read the
+    // entire file, if we want to support files larger than 4gb
+    Usize totalRead = 0;
+    while (totalRead < fileSize)
+    {
+        Usize remaining = fileSize - totalRead;
+        DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
+        if (!ReadFile(file, &buffer.m_data[totalRead], size, nullptr, nullptr))
+        {
+            buffer.~Slice();
+            break;
+        }
+
+        totalRead += static_cast<Usize>(size);
+        LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
+        SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
+    }
+
+    CloseHandle(handle);
+    return buffer;
+}
+
+Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
+{
+    HANDLE file = CreateFileA(
+        path.CString(),
+        GENERIC_WRITE, FILE_SHARE_WRITE,
+        nullptr,
+        OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+       	nullptr
+    );
+    if (file == INVALID_HANDLE_VALUE)
+        return false;
+
+    // NOTE: Since 'WriteFile()' only takes a 32bit int as input (DWORD),
+    // we have to do multiple calls to it until the entire file is written,
+    // if we want to support buffers larger than 4gb
+    Usize totalWritten = 0;
+    while (totalWritten < buffer.Size())
+    {
+        Usize remaining = buffer.Size() - totalWritten;
+        DWORD size = static_cast<DWORD>(remaining, 0, DWORD_MAX);
+        if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
+            return false;
+
+        totalWritten += static_cast<Usize>(size);
+        LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
+        SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
+    }
+
+    CloseHandle(file);
+    return true;
+}
+
+String8 GetExePath(IAllocator* allocator)
+{
+    String8 path = String8(allocator, MAX_PATH);
+    if (!GetModuleFileNameA(nullptr, path.CString(), MAX_PATH))
+        path.~String8();
+
+    return path;
+}
+
+static String8 _GetEnv(const C8* env, IAllocator* allocator)
+{
+    String8 result = String8(allocator, MAX_PATH);
+    if (GetEnvironmentVariable(env, result.CString(), MAX_PATH) == 0)
+        result.~String8();
+
+	return result;
+}
+
+String8 GetUserDir(IAllocator* allocator)
+{
+    return _GetEnv("USERPROFILE", allocator);
+}
+
+String8 GetConfigDir(IAllocator* allocator)
+{
+    return _GetEnv("APPDATA", allocator);
+}
+
+
 // =============================
 // ======= Miscellaneous =======
 // =============================
@@ -110,6 +222,7 @@ void _AssertRel(const C8* msg, const C8* file, const U32 line)
 	C8 finalMsg[512];
 	wsprintfA(finalMsg, "%s\n%s:%u\n", msg, file, line);
 	MessageBox(nullptr, finalMsg, nullptr, MB_OK | MB_ICONERROR | MB_TASKMODAL);
+
 	ExitProcess(1);
 }
 

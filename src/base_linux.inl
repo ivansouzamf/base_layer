@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <pthread.h>
 
 
@@ -24,6 +27,82 @@ NoType* HeapAllocator::Realloc(NoType* ptr, Usize size)
 NoType HeapAllocator::Free(NoType* ptr)
 {
     free(ptr);
+}
+
+
+// ==========================
+// ======= Filesystem =======
+// ==========================
+
+Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
+{
+    int fd = open(path.CString(), O_RDONLY, 0);
+    if (fd == -1)
+        return Slice<Byte>(nullptr, nullptr, 0);
+
+    Usize size = static_cast<Usize>(lseek(fd, 0, SEEK_END));
+    lseek(fd, 0, SEEK_SET);
+
+    Slice<Byte> buffer = Slice<Byte>(allocator, size);
+    if (read(fd, buffer.m_data, size) == -1)
+        buffer.~Slice();
+
+    close(fd);
+    return buffer;
+}
+
+Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
+{
+    int fd = open(path.CString(), O_WRONLY, 0);
+    if (fd == -1)
+        return false;
+
+    ssize_t written = write(fd, buffer.m_data, buffer.Size());
+
+    close(fd);
+    return written != -1;
+}
+
+String8 GetExePath(IAllocator* allocator)
+{
+    String8 path  = String8(allocator, PATH_MAX);
+    Usize pathLen = readlink("/proc/self/exe", path.CString(), PATH_MAX);
+    path.m_length = pathLen;
+    path[pathLen] = '\0';
+
+    return path;
+}
+
+String8 GetUserDir(IAllocator* allocator)
+{
+    C8* cdir = getenv("HOME");
+    if (cdir == nullptr)
+        return String8(nullptr, 0);
+
+    String8 dir = String8(cdir);
+    return dir.Clone(allocator);
+}
+
+String8 GetConfigDir(IAllocator* allocator)
+{
+    // NOTE: Specified here https://specifications.freedesktop.org/basedir-spec/latest/#variables
+    C8* cdir = getenv("XDG_CONFIG_HOME");
+    if (cdir != nullptr)
+    {
+        String8 dir = String8(cdir);
+        return dir.Clone(allocator);
+    }
+
+    // If $XDG_CONFIG_HOME isn't setted we default to $HOME/.config
+    String8 config = "/.config";
+    String8 home = GetUserDir(allocator);
+    if (home.Length() == 0)
+        return String8(nullptr, 0);
+
+    String8 final = home.Join(config, allocator);
+
+    home.~String8();
+    return final;
 }
 
 

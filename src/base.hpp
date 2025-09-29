@@ -2,7 +2,6 @@
 
 #include "defines.hpp"
 #include <math.h>
-
 // Intrinsics
 #if defined(BASE_CC_MSVC)
     #include <intrin.h>
@@ -142,6 +141,7 @@ struct String8
 {
 	String8(IAllocator* allocator, Usize length);
 	String8(const C8* cstring);
+	String8(IAllocator* allocator, C8* data, Usize length);
 	~String8();
 
 	NoType operator=(const C8* cstring);
@@ -272,12 +272,12 @@ struct Slice
 		m_size = arr.m_reserved;
 	}
 
-	Slice(T* data, Usize size)
-	{
-	    m_allocator = nullptr;
-		m_data = data;
-		m_size = size;
-	}
+    Slice(IAllocator* allocator, T* data, Usize size)
+    {
+        m_allocator = allocator;
+        m_data = data;
+        m_size = size;
+    }
 
 	~Slice()
 	{
@@ -342,6 +342,45 @@ struct Slice
 typedef NoType* (*ThreadFunc)(NoType* data);
 struct Thread;
 struct Mutex;
+
+#if 0
+struct Thread
+{
+    Thread(ThreadFunc thrdFunc, NoType* data, Bool start = false);
+    ~Thread();
+
+    NoType Run();
+    NoType Stop();
+    NoType Join();
+    NoType AssignCore(U32 core);
+
+    static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
+    static NoType Exit(U32 code = 0);
+};
+
+struct Mutex
+{
+    Mutex(U32 waitSpin = 32);
+    ~Mutex();
+
+    NoType Lock();
+    Bool TryLock();
+    NoType Unlock();
+};
+#endif
+
+
+// ==========================
+// ======= Filesystem =======
+// ==========================
+
+Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator);
+String8 ReadEntireFileAsString(String8 path, IAllocator* allocator);
+Bool WriteEntireFile(String8 path, Slice<Byte> buffer);
+String8 GetDirFromPath(String8 path, IAllocator* allocator = nullptr);
+String8 GetExePath(IAllocator* allocator);
+String8 GetUserDir(IAllocator* allocator);
+String8 GetConfigDir(IAllocator* allocator);
 
 
 // ------- OS Includes -------

@@ -80,6 +80,13 @@ String8::String8(const C8* cstring)
 	m_length = CStringLen(cstring);
 }
 
+String8::String8(IAllocator* allocator, C8* data, Usize length)
+{
+    m_allocator = allocator;
+    m_data = data;
+    m_length = length;
+}
+
 String8::~String8()
 {
 	if (m_allocator != nullptr)
@@ -149,6 +156,7 @@ String8 String8::Join(String8 string, IAllocator* allocator)
 	String8 newStr = String8(allocator, length);
 	MemoryCopy(newStr.m_data, m_data, m_length);
 	MemoryCopy(&newStr.m_data[m_length], string.m_data, string.m_length);
+	newStr[length] = '\0';
 
 	return newStr;
 }
@@ -175,6 +183,31 @@ C8* String8::CString()
 Usize String8::Length()
 {
 	return m_length;
+}
+
+
+// ==========================
+// ======= Filesystem =======
+// ==========================
+
+String8 ReadEntireFileAsString(String8 path, IAllocator* allocator)
+{
+    Slice<Byte> buffer = ReadEntireFile(path, allocator);
+    return String8(allocator, reinterpret_cast<C8*>(buffer.m_data), buffer.Size());
+}
+
+String8 GetDirFromPath(String8 path, IAllocator* allocator)
+{
+    Usize lastSlash = 0;
+    for (Usize i = 0; i < path.Length(); i += 1)
+        if (path[i] == BASE_PATH_SEPARATOR)
+            lastSlash = i;
+
+    String8 dir = path.Clone(allocator);
+    dir.m_length = lastSlash;
+    dir[lastSlash] = '\0';
+
+    return dir;
 }
 
 
