@@ -1,9 +1,11 @@
 #include "base_linux.hpp"
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sched.h>
 #include <pthread.h>
 
 
@@ -139,7 +141,9 @@ NoType Thread::Join()
 
 NoType Thread::AssignCore(U32 core)
 {
-    // TODO:
+    cpu_set_t cpuset = {};
+    CPU_SET(static_cast<int>(core), &cpuset);
+    pthread_setaffinity_np(m_thread, SIZE_OF(cpuset), &cpuset);
 }
 
 NoType Thread::JoinMultiple(Thread* thrds, U32 thrdCount)
