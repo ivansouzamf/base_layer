@@ -156,7 +156,7 @@ String8 String8::Join(String8 string, IAllocator* allocator)
 	String8 newStr = String8(allocator, length);
 	MemoryCopy(newStr.m_data, m_data, m_length);
 	MemoryCopy(&newStr.m_data[m_length], string.m_data, string.m_length);
-	newStr[length] = '\0';
+	newStr.m_data[length] = '\0';
 
 	return newStr;
 }
@@ -214,9 +214,9 @@ String8 GetDirFromPath(String8 path, IAllocator* allocator)
 // ------- OS Includes -------
 S32 EntryPoint(S32 argc, C8* argv[]);
 #if defined(BASE_OS_WIN32)
-    #include "base_win32.inl"
+    #include "platform/base_win32.cpp"
 #elif defined(BASE_OS_LINUX)
-    #include "base_linux.inl"
+    #include "platform/base_linux.cpp"
 #endif
 
 

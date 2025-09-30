@@ -1,3 +1,4 @@
+#include "base_win32.hpp"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -171,7 +172,7 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
     while (totalWritten < buffer.Size())
     {
         Usize remaining = buffer.Size() - totalWritten;
-        DWORD size = static_cast<DWORD>(remaining, 0, DWORD_MAX);
+        DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
         if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
             return false;
 
@@ -219,7 +220,7 @@ String8 GetConfigDir(IAllocator* allocator)
 
 void _AssertRel(const C8* msg, const C8* file, const U32 line)
 {
-	C8 finalMsg[512];
+	C8 finalMsg[512] = {};
 	wsprintfA(finalMsg, "%s\n%s:%u\n", msg, file, line);
 	MessageBox(nullptr, finalMsg, nullptr, MB_OK | MB_ICONERROR | MB_TASKMODAL);
 

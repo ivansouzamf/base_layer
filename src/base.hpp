@@ -9,17 +9,16 @@
     #include <x86intrin.h>
 #endif
 
-
 // ====================
 // ======= Math =======
 // ====================
 
-// TODO: Maybe we should define constants as 'const' instead
+// TODO: Maybe we should define constants as 'constexpr' instead
 // of macros to avoid namespace naming conflicts
-#define MATH_PI 3.14159265358979323846264338327950288f
-#define MATH_TAU 6.28318530717958647692528676655900576f
-#define MATH_LOG_TEN 2.30258509299404568401799145468436421f
-#define MATH_LOG_TWO 0.693147180559945309417232121458176568f
+#define MATH_PI 3.14159265358979323846264338327950288
+#define MATH_TAU 6.28318530717958647692528676655900576
+#define MATH_LOG_TEN 2.30258509299404568401799145468436421
+#define MATH_LOG_TWO 0.693147180559945309417232121458176568
 
 // *** F32 Implementations ***
 inline F32 Round(F32 num) { return roundf(num); }
@@ -385,7 +384,7 @@ String8 GetConfigDir(IAllocator* allocator);
 
 // ------- OS Includes -------
 #if defined(BASE_OS_WIN32)
-    #include "base_win32.hpp"
+    #include "platform/base_win32.hpp"
 #elif defined(BASE_OS_LINUX)
-    #include "base_linux.hpp"
+    #include "platform/base_linux.hpp"
 #endif

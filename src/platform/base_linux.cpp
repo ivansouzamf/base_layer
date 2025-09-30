@@ -1,3 +1,4 @@
+#include "base_linux.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -65,10 +66,10 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 
 String8 GetExePath(IAllocator* allocator)
 {
-    String8 path  = String8(allocator, PATH_MAX);
+    String8 path = String8(allocator, PATH_MAX);
     Usize pathLen = readlink("/proc/self/exe", path.CString(), PATH_MAX);
     path.m_length = pathLen;
-    path[pathLen] = '\0';
+    path.m_data[pathLen] = '\0';
 
     return path;
 }
