@@ -140,7 +140,7 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
         DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
         if (!ReadFile(file, &buffer.m_data[totalRead], size, nullptr, nullptr))
         {
-            buffer.~Slice();
+            buffer.Release();
             break;
         }
 
@@ -189,7 +189,7 @@ String8 GetExePath(IAllocator* allocator)
 {
     String8 path = String8(allocator, MAX_PATH);
     if (!GetModuleFileNameA(nullptr, path.CString(), MAX_PATH))
-        path.~String8();
+        path.Release();
 
     return path;
 }
@@ -198,7 +198,7 @@ static String8 _GetEnv(const C8* env, IAllocator* allocator)
 {
     String8 result = String8(allocator, MAX_PATH);
     if (GetEnvironmentVariable(env, result.CString(), MAX_PATH) == 0)
-        result.~String8();
+        result.Release();
 
 	return result;
 }

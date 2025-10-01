@@ -101,13 +101,13 @@ NoType String8::Release()
 
 NoType String8::operator=(const C8* cstring)
 {
-	this->~String8();
+	this->Release();
 	*this = String8(cstring);
 }
 
 NoType String8::operator=(String8 string)
 {
-	this->~String8();
+	this->Release();
 	m_allocator = string.m_allocator;
 	m_data = string.m_data;
 	m_length = string.m_length;

@@ -48,7 +48,7 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 
     Slice<Byte> buffer = Slice<Byte>(allocator, size);
     if (read(fd, buffer.m_data, size) == -1)
-        buffer.~Slice();
+        buffer.Release();
 
     close(fd);
     return buffer;
@@ -102,10 +102,10 @@ String8 GetConfigDir(IAllocator* allocator)
     if (home.Length() == 0)
         return String8(nullptr, 0);
 
-    String8 final = home.Join(config, allocator);
+    String8 result = home.Join(config, allocator);
 
-    home.~String8();
-    return final;
+    home.Release();
+    return result;
 }
 
 
