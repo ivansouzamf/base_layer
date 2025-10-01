@@ -119,7 +119,7 @@ Thread::Thread(ThreadFunc thrdFunc, NoType* data, Bool start)
     pthread_create(&m_thread, nullptr, thrdFunc, data);
 }
 
-Thread::~Thread()
+NoType Thread::Release()
 {
     // Not needed on linux (apparently)
 }
@@ -162,7 +162,7 @@ Mutex::Mutex(U32)
     pthread_mutex_init(&m_mutex, nullptr);
 }
 
-Mutex::~Mutex()
+NoType Mutex::Release()
 {
     pthread_mutex_destroy(&m_mutex);
 }

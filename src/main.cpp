@@ -18,7 +18,7 @@ S32 EntryPoint(S32 argc, C8* argv[])
         exePath.CString(), userDir.CString(), configDir.CString()
     );
 
-    String8 fileContent = ReadEntireFileAsString("./src/base.cpp", &heapAlloc);
+    String8 fileContent = ReadEntireFileAsString(".\\src\\base.cpp", &heapAlloc);
     printf("%s", fileContent.CString());
 
     return 0;

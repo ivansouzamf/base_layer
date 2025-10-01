@@ -21,7 +21,7 @@ ArenaAllocator::ArenaAllocator(IAllocator* allocator, Usize size)
 	m_current = 0;
 }
 
-ArenaAllocator::~ArenaAllocator()
+NoType ArenaAllocator::Release()
 {
 	if (m_allocator != nullptr)
 	{
@@ -87,7 +87,7 @@ String8::String8(IAllocator* allocator, C8* data, Usize length)
     m_length = length;
 }
 
-String8::~String8()
+NoType String8::Release()
 {
 	if (m_allocator != nullptr)
 	{

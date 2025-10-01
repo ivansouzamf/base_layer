@@ -118,7 +118,7 @@ struct ArenaAllocator : IAllocator
 {
 	ArenaAllocator(NoType* buffer, Usize size);
 	ArenaAllocator(IAllocator* allocator, Usize size);
-	~ArenaAllocator();
+	NoType Release();
 
 	NoType* Alloc(Usize size) override;
 	NoType* Realloc(NoType* ptr, Usize size) override;
@@ -141,7 +141,7 @@ struct String8
 	String8(IAllocator* allocator, Usize length);
 	String8(const C8* cstring);
 	String8(IAllocator* allocator, C8* data, Usize length);
-	~String8();
+	NoType Release();
 
 	NoType operator=(const C8* cstring);
 	NoType operator=(String8 string);
@@ -176,7 +176,7 @@ struct DynArray
 		m_reserved = size;
 	}
 
-	~DynArray()
+	NoType Release()
 	{
 		m_allocator->Free(m_data);
 		m_allocator = nullptr;
@@ -278,7 +278,7 @@ struct Slice
         m_size = size;
     }
 
-	~Slice()
+	NoType Release()
 	{
 		if (m_allocator != nullptr)
 		{
@@ -346,7 +346,7 @@ struct Mutex;
 struct Thread
 {
     Thread(ThreadFunc thrdFunc, NoType* data, Bool start = false);
-    ~Thread();
+    NoType Release();
 
     NoType Run();
     NoType Stop();
@@ -360,7 +360,7 @@ struct Thread
 struct Mutex
 {
     Mutex(U32 waitSpin = 32);
-    ~Mutex();
+    NoType Release();
 
     NoType Lock();
     Bool TryLock();

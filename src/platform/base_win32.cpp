@@ -37,10 +37,10 @@ NoType HeapAllocator::Free(NoType* ptr)
 Thread::Thread(ThreadFunc thrdFunc, NoType* data, Bool start)
 {
    	DWORD flags = (start) ? 0 : CREATE_SUSPENDED;
-	m_handle = CreateThread(nullptr, 0, thrdFunc, data, flags, nullptr);
+	m_handle = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)(uintptr_t) thrdFunc, data, flags, nullptr);
 }
 
-Thread::~Thread()
+NoType Thread::Release()
 {
     CloseHandle(m_handle);
 }
@@ -83,7 +83,7 @@ Mutex::Mutex(U32 waitSpin)
     InitializeCriticalSectionAndSpinCount(&m_critSec, spinCount);
 }
 
-Mutex::~Mutex()
+NoType Mutex::Release()
 {
     DeleteCriticalSection(&m_critSec);
 }
@@ -121,7 +121,7 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
         return Slice<Byte>(nullptr, nullptr, 0);
 
     LARGE_INTEGER _fileSize;
-    if (GetFileSizeEx(file, &_fileSize))
+    if (!GetFileSizeEx(file, &_fileSize))
     {
         CloseHandle(file);
         return Slice<Byte>(nullptr, nullptr, 0);
@@ -149,7 +149,7 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
         SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
     }
 
-    CloseHandle(handle);
+    CloseHandle(file);
     return buffer;
 }
 

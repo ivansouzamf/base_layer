@@ -24,7 +24,7 @@ struct HeapAllocator : IAllocator
 struct Thread
 {
 	Thread(ThreadFunc thrdFunc, NoType* data, Bool start = false);
-	~Thread();
+	NoType Release();
 
 	NoType Run();
 	NoType Stop();
@@ -40,7 +40,7 @@ struct Thread
 struct Mutex
 {
 	Mutex(U32 waitSpin = 32);
-	~Mutex();
+	NoType Release();
 
 	NoType Lock();
 	Bool TryLock();
