@@ -66,6 +66,13 @@ NoType ArenaAllocator::FreeAll()
 // ======= Strings =======
 // =======================
 
+String8::String8(IAllocator* allocator, C8* data, Usize length)
+{
+    m_allocator = allocator;
+    m_data = data;
+    m_length = length;
+}
+
 String8::String8(IAllocator* allocator, Usize length)
 {
 	m_allocator = allocator;
@@ -78,13 +85,6 @@ String8::String8(const C8* cstring)
 	m_allocator = nullptr;
 	m_data = const_cast<C8*>(cstring);
 	m_length = CStringLen(cstring);
-}
-
-String8::String8(IAllocator* allocator, C8* data, Usize length)
-{
-    m_allocator = allocator;
-    m_data = data;
-    m_length = length;
 }
 
 NoType String8::Release()

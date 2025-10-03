@@ -138,9 +138,9 @@ struct ArenaAllocator : IAllocator
 
 struct String8
 {
+	String8(IAllocator* allocator, C8* data, Usize length);
 	String8(IAllocator* allocator, Usize length);
 	String8(const C8* cstring);
-	String8(IAllocator* allocator, C8* data, Usize length);
 	NoType Release();
 
 	NoType operator=(const C8* cstring);
@@ -231,7 +231,7 @@ struct DynArray
 			// TODO: Maybe we should just pre allocate
 			// a larger size to avoid future allocations
 			const Usize slotsToGrow = 0;
-			Reserve(m_length + slotsToGrow);
+			this->Reserve(m_length + slotsToGrow);
 		}
 
 		m_data[m_length - 1] = value;
@@ -256,6 +256,13 @@ struct DynArray
 template <typename T>
 struct Slice
 {
+    Slice(IAllocator* allocator, T* data, Usize size)
+    {
+        m_allocator = allocator;
+        m_data = data;
+        m_size = size;
+    }
+
 	Slice(IAllocator* allocator, Usize size)
 	{
 		m_allocator = allocator;
@@ -270,13 +277,6 @@ struct Slice
 		m_data = arr.m_data;
 		m_size = arr.m_reserved;
 	}
-
-    Slice(IAllocator* allocator, T* data, Usize size)
-    {
-        m_allocator = allocator;
-        m_data = data;
-        m_size = size;
-    }
 
 	NoType Release()
 	{

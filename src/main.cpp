@@ -18,8 +18,16 @@ S32 EntryPoint(S32 argc, C8* argv[])
         exePath.CString(), userDir.CString(), configDir.CString()
     );
 
-    String8 fileContent = ReadEntireFileAsString(".\\src\\base.cpp", &heapAlloc);
-    printf("%s", fileContent.CString());
+    for (S32 i = 0; i < argc; i += 1)
+        printf("Argv[%i] = %s\n", i, argv[i]);
+
+    String8 fileContent = ReadEntireFileAsString("./src/base.cpp", &heapAlloc);
+    printf(
+        "### FILE DUMP ###\n"
+        "%s\n"
+        "### END DUMP ###\n",
+        fileContent.CString()
+    );
 
     return 0;
 }
