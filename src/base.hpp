@@ -111,8 +111,14 @@ struct IAllocator
 	virtual NoType Free(NoType* ptr) = 0;
 };
 
-// Implemented per OS
-struct HeapAllocator;
+struct HeapAllocator : IAllocator
+{
+    HeapAllocator();
+
+	NoType* Alloc(Usize size) override;
+	NoType* Realloc(NoType* ptr, Usize size) override;
+	NoType Free(NoType* ptr) override;
+};
 
 struct ArenaAllocator : IAllocator
 {

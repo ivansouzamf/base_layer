@@ -4,22 +4,6 @@
 #include <windows.h>
 
 
-// =================================
-// ======= Custom Allocators =======
-// =================================
-
-struct HeapAllocator : IAllocator
-{
-	HeapAllocator();
-
-	NoType* Alloc(Usize size) override;
-	NoType* Realloc(NoType* ptr, Usize size) override;
-	NoType Free(NoType* ptr) override;
-
-	HANDLE m_heap;
-};
-
-
 // =======================
 // ======= Threads =======
 // =======================

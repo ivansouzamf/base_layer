@@ -11,22 +11,21 @@
 
 HeapAllocator::HeapAllocator()
 {
-	m_heap = GetProcessHeap();
 }
 
 NoType* HeapAllocator::Alloc(Usize size)
 {
-	return HeapAlloc(m_heap, 0, size);
+	return HeapAlloc(GetProcessHeap(), 0, size);
 }
 
 NoType* HeapAllocator::Realloc(NoType* ptr, Usize size)
 {
-	return HeapReAlloc(m_heap, 0, ptr, size);
+	return HeapReAlloc(GetProcessHeap(), 0, ptr, size);
 }
 
 NoType HeapAllocator::Free(NoType* ptr)
 {
-	HeapFree(m_heap, 0, ptr);
+	HeapFree(GetProcessHeap(), 0, ptr);
 }
 
 
