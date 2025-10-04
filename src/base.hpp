@@ -15,17 +15,16 @@
 
 // TODO: Maybe we should define constants as 'constexpr' instead
 // of macros to avoid namespace naming conflicts
-#define MATH_PI 3.14159265358979323846264338327950288
-#define MATH_TAU 6.28318530717958647692528676655900576
-#define MATH_LOG_TEN 2.30258509299404568401799145468436421
-#define MATH_LOG_TWO 0.693147180559945309417232121458176568
+#define MATH_PI 3.14159265358979323846264338327950288f
+#define MATH_TAU 6.28318530717958647692528676655900576f
+#define MATH_LOG_TEN 2.30258509299404568401799145468436421f
+#define MATH_LOG_TWO 0.693147180559945309417232121458176568f
 
 // *** F32 Implementations ***
 inline F32 Round(F32 num) { return roundf(num); }
 inline F32 Floor(F32 num) { return floorf(num); }
 inline F32 Ceil(F32 num) { return ceilf(num); }
 
-// TODO: Overload 'Mod()' with the '%' operator
 inline F32 Exp(F32 num) { return expf(num); }
 inline F32 Exp2(F32 num) { return exp2f(num); }
 inline F32 Log(F32 num) { return logf(num); }
@@ -35,6 +34,7 @@ inline F32 Sqrt(F32 num) { return sqrtf(num); }
 inline F32 RSqrt(F32 num) { return 1.0f / sqrtf(num); }
 inline F32 Cbrt(F32 num) { return cbrtf(num); }
 inline F32 Mod(F32 a, F32 b) { return fmodf(a, b); }
+inline F32 operator%(F32 a, F32 b) { return Mod(a, b); }
 
 inline F32 Sin(F32 radians) { return sinf(radians); }
 inline F32 Cos(F32 radians) { return cosf(radians); }
@@ -51,7 +51,6 @@ inline F64 Round(F64 num) { return round(num); }
 inline F64 Floor(F64 num) { return floor(num); }
 inline F64 Ceil(F64 num) { return ceil(num); }
 
-// TODO: Overload 'Mod()' with the '%' operator
 inline F64 Exp(F64 num) { return exp(num); }
 inline F64 Exp2(F64 num) { return exp2(num); }
 inline F64 Log(F64 num) { return log(num); }
@@ -61,6 +60,7 @@ inline F64 Sqrt(F64 num) { return sqrt(num); }
 inline F64 RSqrt(F64 num) { return 1.0 / sqrt(num); }
 inline F64 Cbrt(F64 num) { return cbrt(num); }
 inline F64 Mod(F64 a, F64 b) { return fmod(a, b); }
+inline F64 operator%(F64 a, F64 b) { return Mod(a, b); }
 
 inline F64 Sin(F64 radians) { return sin(radians); }
 inline F64 Cos(F64 radians) { return cos(radians); }
@@ -95,20 +95,18 @@ union Vec4F
 struct IAllocator
 {
 	virtual NoType* Alloc(Usize size) = 0;
+	virtual NoType* Realloc(NoType* ptr, Usize size) = 0;
+	virtual NoType Free(NoType* ptr) = 0;
 
 	NoType* AllocAligned(Usize aligment, Usize size)
 	{
-		return Alloc(AlignPow2(aligment, size));
+		return this->Alloc(AlignPow2(aligment, size));
 	}
-
-	virtual NoType* Realloc(NoType* ptr, Usize size) = 0;
 
 	NoType* ReallocAligned(Usize aligment, NoType* ptr, Usize size)
 	{
-		return Realloc(ptr, AlignPow2(aligment, size));
+		return this->Realloc(ptr, AlignPow2(aligment, size));
 	}
-
-	virtual NoType Free(NoType* ptr) = 0;
 };
 
 struct HeapAllocator : IAllocator
