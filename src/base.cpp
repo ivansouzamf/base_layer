@@ -148,7 +148,7 @@ String8 String8::Join(String8 string, IAllocator* allocator)
 {
 	if (allocator == nullptr)
 	{
-	    ASSERT(m_allocator != nullptr, "Missing allocator");
+		ASSERT(m_allocator != nullptr, "Missing allocator");
 		allocator = m_allocator;
 	}
 
