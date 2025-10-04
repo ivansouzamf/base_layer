@@ -77,7 +77,7 @@ typedef void NoType;
 
 #define MemoryCopy(dst, src, size) memcpy(dst, src, size)
 #define MemorySet(dst, byte, size) memset(dst, byte, size)
-#define MemoryZero(dst, size) SetMemory(dst, 0, size)
+#define MemoryZero(dst, size) MemorySet(dst, 0, size)
 #define MemoryCompare(a, b, size) (memcmp(a, b, size) == 0)
 #define CStringLen(str) strlen(str)
 
