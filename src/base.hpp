@@ -4,9 +4,9 @@
 #include <math.h>
 // Intrinsics
 #if defined(BASE_CC_MSVC)
-    #include <intrin.h>
+	#include <intrin.h>
 #elif defined(BASE_CC_CLANG) || defined(BASE_CC_GCC)
-    #include <x86intrin.h>
+	#include <x86intrin.h>
 #endif
 
 // ====================
@@ -113,7 +113,7 @@ struct IAllocator
 
 struct HeapAllocator : IAllocator
 {
-    HeapAllocator();
+	HeapAllocator();
 
 	NoType* Alloc(Usize size) override;
 	NoType* Realloc(NoType* ptr, Usize size) override;
@@ -262,12 +262,12 @@ struct DynArray
 template <typename T>
 struct Slice
 {
-    Slice(IAllocator* allocator, T* data, Usize size)
-    {
-        m_allocator = allocator;
-        m_data = data;
-        m_size = size;
-    }
+	Slice(IAllocator* allocator, T* data, Usize size)
+	{
+		m_allocator = allocator;
+		m_data = data;
+		m_size = size;
+	}
 
 	Slice(IAllocator* allocator, Usize size)
 	{
@@ -278,7 +278,7 @@ struct Slice
 
 	Slice(DynArray<T> arr)
 	{
-	    // TODO: I'm not sure if we should inherit the allocator
+		// TODO: I'm not sure if we should inherit the allocator
 		m_allocator = nullptr;
 		m_data = arr.m_data;
 		m_size = arr.m_reserved;
@@ -318,7 +318,7 @@ struct Slice
 	{
 		if (allocator == nullptr)
 		{
-		    ASSERT(m_allocator != nullptr, "Missing allocator");
+			ASSERT(m_allocator != nullptr, "Missing allocator");
 			allocator = m_allocator;
 		}
 
@@ -351,26 +351,26 @@ struct Mutex;
 #if 0
 struct Thread
 {
-    Thread(ThreadFunc thrdFunc, NoType* data, Bool start = false);
-    NoType Release();
+	Thread(ThreadFunc thrdFunc, NoType* data, Bool start = false);
+	NoType Release();
 
-    NoType Run();
-    NoType Stop();
-    NoType Join();
-    NoType AssignCore(U32 core);
+	NoType Run();
+	NoType Stop();
+	NoType Join();
+	NoType AssignCore(U32 core);
 
-    static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
-    static NoType Exit(U32 code = 0);
+	static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
+	static NoType Exit(U32 code = 0);
 };
 
 struct Mutex
 {
-    Mutex(U32 waitSpin = 32);
-    NoType Release();
+	Mutex(U32 waitSpin = 32);
+	NoType Release();
 
-    NoType Lock();
-    Bool TryLock();
-    NoType Unlock();
+	NoType Lock();
+	Bool TryLock();
+	NoType Unlock();
 };
 #endif
 
@@ -390,7 +390,7 @@ String8 GetConfigDir(IAllocator* allocator);
 
 // ------- OS Includes -------
 #if defined(BASE_OS_WIN32)
-    #include "platform/base_win32.hpp"
+	#include "platform/base_win32.hpp"
 #elif defined(BASE_OS_LINUX)
-    #include "platform/base_linux.hpp"
+	#include "platform/base_linux.hpp"
 #endif

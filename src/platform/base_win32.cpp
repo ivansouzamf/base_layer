@@ -35,28 +35,28 @@ NoType HeapAllocator::Free(NoType* ptr)
 
 Thread::Thread(ThreadFunc thrdFunc, NoType* data, Bool start)
 {
-   	DWORD flags = (start) ? 0 : CREATE_SUSPENDED;
+	DWORD flags = (start) ? 0 : CREATE_SUSPENDED;
 	m_handle = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)(uintptr_t) thrdFunc, data, flags, nullptr);
 }
 
 NoType Thread::Release()
 {
-    CloseHandle(m_handle);
+	CloseHandle(m_handle);
 }
 
 NoType Thread::Run()
 {
-    ResumeThread(m_handle);
+	ResumeThread(m_handle);
 }
 
 NoType Thread::Stop()
 {
-    SuspendThread(m_handle);
+	SuspendThread(m_handle);
 }
 
 NoType Thread::Join()
 {
-    WaitForSingleObject(m_handle, INFINITE);
+	WaitForSingleObject(m_handle, INFINITE);
 }
 
 NoType Thread::AssignCore(U32 core)
@@ -78,28 +78,28 @@ NoType Thread::Exit(U32 code)
 
 Mutex::Mutex(U32 waitSpin)
 {
-    DWORD spinCount = static_cast<DWORD>(waitSpin);
-    InitializeCriticalSectionAndSpinCount(&m_critSec, spinCount);
+	DWORD spinCount = static_cast<DWORD>(waitSpin);
+	InitializeCriticalSectionAndSpinCount(&m_critSec, spinCount);
 }
 
 NoType Mutex::Release()
 {
-    DeleteCriticalSection(&m_critSec);
+	DeleteCriticalSection(&m_critSec);
 }
 
 NoType Mutex::Lock()
 {
-    EnterCriticalSection(&m_critSec);
+	EnterCriticalSection(&m_critSec);
 }
 
 Bool Mutex::TryLock()
 {
-    return TryEnterCriticalSection(&m_critSec) == TRUE;
+	return TryEnterCriticalSection(&m_critSec) == TRUE;
 }
 
 NoType Mutex::Unlock()
 {
-    LeaveCriticalSection(&m_critSec);
+	LeaveCriticalSection(&m_critSec);
 }
 
 
@@ -109,107 +109,107 @@ NoType Mutex::Unlock()
 
 Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 {
-    HANDLE file = CreateFileA(
-        path.CString(),
-        GENERIC_READ, FILE_SHARE_READ,
-        nullptr,
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-        nullptr
-    );
-    if (file == INVALID_HANDLE_VALUE)
-        return Slice<Byte>(nullptr, nullptr, 0);
+	HANDLE file = CreateFileA(
+		path.CString(),
+		GENERIC_READ, FILE_SHARE_READ,
+		nullptr,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+		nullptr
+	);
+	if (file == INVALID_HANDLE_VALUE)
+		return Slice<Byte>(nullptr, nullptr, 0);
 
-    LARGE_INTEGER _fileSize;
-    if (!GetFileSizeEx(file, &_fileSize))
-    {
-        CloseHandle(file);
-        return Slice<Byte>(nullptr, nullptr, 0);
-    }
+	LARGE_INTEGER _fileSize;
+	if (!GetFileSizeEx(file, &_fileSize))
+	{
+		CloseHandle(file);
+		return Slice<Byte>(nullptr, nullptr, 0);
+	}
 
-    Usize fileSize = static_cast<Usize>(_fileSize.QuadPart);
-    Slice<Byte> buffer = Slice<Byte>(allocator, fileSize);
+	Usize fileSize = static_cast<Usize>(_fileSize.QuadPart);
+	Slice<Byte> buffer = Slice<Byte>(allocator, fileSize);
 
-    // NOTE: Since 'ReadFile()' only takes a 32bit int as input (DWORD),
-    // we have to do multiple calls to it until we actually have read the
-    // entire file, if we want to support files larger than 4gb
-    Usize totalRead = 0;
-    while (totalRead < fileSize)
-    {
-        Usize remaining = fileSize - totalRead;
-        DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
-        if (!ReadFile(file, &buffer.m_data[totalRead], size, nullptr, nullptr))
-        {
-            buffer.Release();
-            break;
-        }
+	// NOTE: Since 'ReadFile()' only takes a 32bit int as input (DWORD),
+	// we have to do multiple calls to it until we actually have read the
+	// entire file, if we want to support files larger than 4gb
+	Usize totalRead = 0;
+	while (totalRead < fileSize)
+	{
+		Usize remaining = fileSize - totalRead;
+		DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
+		if (!ReadFile(file, &buffer.m_data[totalRead], size, nullptr, nullptr))
+		{
+			buffer.Release();
+			break;
+		}
 
-        totalRead += static_cast<Usize>(size);
-        LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
-        SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
-    }
+		totalRead += static_cast<Usize>(size);
+		LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
+		SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
+	}
 
-    CloseHandle(file);
-    return buffer;
+	CloseHandle(file);
+	return buffer;
 }
 
 Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 {
-    HANDLE file = CreateFileA(
-        path.CString(),
-        GENERIC_WRITE, FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL,
-       	nullptr
-    );
-    if (file == INVALID_HANDLE_VALUE)
-        return false;
+	HANDLE file = CreateFileA(
+		path.CString(),
+		GENERIC_WRITE, FILE_SHARE_WRITE,
+		nullptr,
+		OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+		nullptr
+	);
+	if (file == INVALID_HANDLE_VALUE)
+		return false;
 
-    // NOTE: Since 'WriteFile()' only takes a 32bit int as input (DWORD),
-    // we have to do multiple calls to it until the entire file is written,
-    // if we want to support buffers larger than 4gb
-    Usize totalWritten = 0;
-    while (totalWritten < buffer.Size())
-    {
-        Usize remaining = buffer.Size() - totalWritten;
-        DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
-        if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
-            return false;
+	// NOTE: Since 'WriteFile()' only takes a 32bit int as input (DWORD),
+	// we have to do multiple calls to it until the entire file is written,
+	// if we want to support buffers larger than 4gb
+	Usize totalWritten = 0;
+	while (totalWritten < buffer.Size())
+	{
+		Usize remaining = buffer.Size() - totalWritten;
+		DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
+		if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
+			return false;
 
-        totalWritten += static_cast<Usize>(size);
-        LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
-        SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
-    }
+		totalWritten += static_cast<Usize>(size);
+		LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
+		SetFilePointerEx(file, offset, nullptr, FILE_CURRENT);
+	}
 
-    CloseHandle(file);
-    return true;
+	CloseHandle(file);
+	return true;
 }
 
 String8 GetExePath(IAllocator* allocator)
 {
-    String8 path = String8(allocator, MAX_PATH);
-    if (!GetModuleFileNameA(nullptr, path.CString(), MAX_PATH))
-        path.Release();
+	String8 path = String8(allocator, MAX_PATH);
+	if (!GetModuleFileNameA(nullptr, path.CString(), MAX_PATH))
+		path.Release();
 
-    return path;
+	return path;
 }
 
 static String8 _GetEnv(const C8* env, IAllocator* allocator)
 {
-    String8 result = String8(allocator, MAX_PATH);
-    if (GetEnvironmentVariable(env, result.CString(), MAX_PATH) == 0)
-        result.Release();
+	String8 result = String8(allocator, MAX_PATH);
+	if (GetEnvironmentVariable(env, result.CString(), MAX_PATH) == 0)
+		result.Release();
 
 	return result;
 }
 
 String8 GetUserDir(IAllocator* allocator)
 {
-    return _GetEnv("USERPROFILE", allocator);
+	return _GetEnv("USERPROFILE", allocator);
 }
 
 String8 GetConfigDir(IAllocator* allocator)
 {
-    return _GetEnv("APPDATA", allocator);
+	return _GetEnv("APPDATA", allocator);
 }
 
 
@@ -229,15 +229,15 @@ void _AssertRel(const C8* msg, const C8* file, const U32 line)
 #if defined(WIN32_CONSOLE_MODE)
 int main(int argc, char* argv[])
 {
-    return EntryPoint(argc, argv);
+	return EntryPoint(argc, argv);
 }
 #elif defined(WIN32_WINDOWS_MODE)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    (void) hInstance;
-    (void) hPrevInstance;
-    (void) lpCmdLine;
-    (void) nShowCmd;
+	(void) hInstance;
+	(void) hPrevInstance;
+	(void) lpCmdLine;
+	(void) nShowCmd;
 	return EntryPoint(0, nullptr);
 }
 #endif

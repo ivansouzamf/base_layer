@@ -68,9 +68,9 @@ NoType ArenaAllocator::FreeAll()
 
 String8::String8(IAllocator* allocator, C8* data, Usize length)
 {
-    m_allocator = allocator;
-    m_data = data;
-    m_length = length;
+	m_allocator = allocator;
+	m_data = data;
+	m_length = length;
 }
 
 String8::String8(IAllocator* allocator, Usize length)
@@ -165,7 +165,7 @@ String8 String8::Clone(IAllocator* allocator)
 {
 	if (allocator == nullptr)
 	{
-	    ASSERT(m_allocator != nullptr, "Missing allocator");
+		ASSERT(m_allocator != nullptr, "Missing allocator");
 		allocator = m_allocator;
 	}
 
@@ -192,38 +192,38 @@ Usize String8::Length()
 
 String8 ReadEntireFileAsString(String8 path, IAllocator* allocator)
 {
-    Slice<Byte> buffer = ReadEntireFile(path, allocator);
-    return String8(allocator, reinterpret_cast<C8*>(buffer.m_data), buffer.Size());
+	Slice<Byte> buffer = ReadEntireFile(path, allocator);
+	return String8(allocator, reinterpret_cast<C8*>(buffer.m_data), buffer.Size());
 }
 
 String8 GetDirFromPath(String8 path, IAllocator* allocator)
 {
-    Usize lastSlash = 0;
-    for (Usize i = 0; i < path.Length(); i += 1)
-        if (path[i] == BASE_PATH_SEPARATOR)
-            lastSlash = i;
+	Usize lastSlash = 0;
+	for (Usize i = 0; i < path.Length(); i += 1)
+		if (path[i] == BASE_PATH_SEPARATOR)
+			lastSlash = i;
 
-    String8 dir = path.Clone(allocator);
-    dir.m_length = lastSlash;
-    dir[lastSlash] = '\0';
+	String8 dir = path.Clone(allocator);
+	dir.m_length = lastSlash;
+	dir[lastSlash] = '\0';
 
-    return dir;
+	return dir;
 }
 
 
 // ------- OS Includes -------
 S32 EntryPoint(S32 argc, C8* argv[]);
 #if defined(BASE_OS_WIN32)
-    #include "platform/base_win32.cpp"
+	#include "platform/base_win32.cpp"
 #elif defined(BASE_OS_LINUX)
-    #include "platform/base_linux.cpp"
+	#include "platform/base_linux.cpp"
 #endif
 
 
 // ------- C++ Garbage -------
 extern "C"
 {
-    void __cxa_pure_virtual()
-    {
-    }
+	void __cxa_pure_virtual()
+	{
+	}
 }

@@ -3,7 +3,7 @@
 
 S32 EntryPoint(S32 argc, C8* argv[])
 {
-    HeapAllocator heapAlloc = HeapAllocator();
+    HeapAllocator heapAlloc;
 
     String8 hello = "Hello, World!";
     printf("%s\n", hello.CString());
