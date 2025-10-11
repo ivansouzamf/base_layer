@@ -29,5 +29,9 @@ S32 EntryPoint(S32 argc, C8* argv[])
         fileContent.CString()
     );
 
+    Vec4F myVec1 = { 1.0f, 2.0f, 3.0f, 4.0f };
+    Vec4F myVec2 = 5.0f;
+    Vec4F myVec3 = myVec1 * myVec2;
+
     return 0;
 }

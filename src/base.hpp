@@ -34,7 +34,6 @@ inline F32 Sqrt(F32 num) { return sqrtf(num); }
 inline F32 RSqrt(F32 num) { return 1.0f / sqrtf(num); }
 inline F32 Cbrt(F32 num) { return cbrtf(num); }
 inline F32 Mod(F32 a, F32 b) { return fmodf(a, b); }
-inline F32 operator%(F32 a, F32 b) { return Mod(a, b); }
 
 inline F32 Sin(F32 radians) { return sinf(radians); }
 inline F32 Cos(F32 radians) { return cosf(radians); }
@@ -60,7 +59,6 @@ inline F64 Sqrt(F64 num) { return sqrt(num); }
 inline F64 RSqrt(F64 num) { return 1.0 / sqrt(num); }
 inline F64 Cbrt(F64 num) { return cbrt(num); }
 inline F64 Mod(F64 a, F64 b) { return fmod(a, b); }
-inline F64 operator%(F64 a, F64 b) { return Mod(a, b); }
 
 inline F64 Sin(F64 radians) { return sin(radians); }
 inline F64 Cos(F64 radians) { return cos(radians); }
@@ -72,20 +70,80 @@ inline F64 Arctan2(F64 y, F64 x) { return atan2(y, x); }
 inline F64 ToRadians(F64 degrees) { return degrees * MATH_TAU / 360.0; }
 inline F64 ToDegrees(F64 radians) { return radians * 360.0 / MATH_TAU; }
 
+// Disable warnings
+#if defined(BASE_CC_MSVC)
+	#pragma warning(push)
+	#pragma warning(disable : 4201)
+#endif
+
 union Vec2F
 {
-    // TODO:
+	// TODO:
 };
 
 union Vec3F
 {
-    // TODO:
+	// TODO:
 };
 
 union Vec4F
 {
-    // TODO:
+	inline Vec4F()
+	{
+	}
+
+	inline Vec4F(F32 scalar)
+	{
+		m_simd = _mm_set_ps1(scalar);
+	}
+
+	inline Vec4F(F32 x, F32 y, F32 z, F32 w)
+	{
+		m_simd = _mm_set_ps(x, y, z, w);
+	}
+
+	inline Vec4F(const F32 arr[4])
+	{
+		m_simd = _mm_load_ps(arr);
+	}
+
+
+	inline Vec4F operator+(Vec4F vec)
+	{
+		Vec4F result;
+		result.m_simd = _mm_add_ps(m_simd, vec.m_simd);
+		return result;
+	}
+
+	inline Vec4F operator-(Vec4F vec)
+	{
+		Vec4F result;
+		result.m_simd = _mm_sub_ps(m_simd, vec.m_simd);
+		return result;
+	}
+
+	inline Vec4F operator*(Vec4F vec)
+	{
+		Vec4F result;
+		result.m_simd = _mm_mul_ps(m_simd, vec.m_simd);
+		return result;
+	}
+
+	inline Vec4F operator/(Vec4F vec)
+	{
+		Vec4F result;
+		result.m_simd = _mm_div_ps(m_simd, vec.m_simd);
+		return result;
+	}
+
+	struct { F32 x, y, z, w; };
+	__m128 m_simd;
 };
+
+// Disable warnings
+#if defined(BASE_CC_MSVC)
+	#pragma warning(pop)
+#endif
 
 
 // =================================
