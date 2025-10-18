@@ -173,7 +173,7 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 		Usize remaining = buffer.Size() - totalWritten;
 		DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
 		if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
-			return false;
+			break;
 
 		totalWritten += static_cast<Usize>(size);
 		LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
@@ -181,7 +181,7 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 	}
 
 	CloseHandle(file);
-	return true;
+	return totalWritten == buffer.Size();
 }
 
 String8 GetExePath(IAllocator* allocator)
