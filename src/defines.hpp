@@ -75,6 +75,19 @@ typedef void NoType;
 #define MEGABYTE(v) KILOBYTE(v) * 1024
 #define GIGABYTE(v) MEGABYTE(v) * 1024
 
+#define _BASE_IMPL_BITFLAG_OP(Type, Op)\
+	inline Type operator Op(Type a, Type b)\
+	{\
+		using T = __underlying_type(Type);\
+		return static_cast<Type>(static_cast<T>(a) Op static_cast<T>(b));\
+	}
+#define BASE_IMPL_BITFLAG(Type)\
+	_BASE_IMPL_BITFLAG_OP(Type, &)\
+	_BASE_IMPL_BITFLAG_OP(Type, |)\
+	_BASE_IMPL_BITFLAG_OP(Type, ^)
+
+#define FlagCheck(flags, mask) (((flags) & (mask)) == (mask))
+
 #define MemoryCopy(dst, src, size) memcpy(dst, src, size)
 #define MemorySet(dst, byte, size) memset(dst, byte, size)
 #define MemoryZero(dst, size) MemorySet(dst, 0, size)

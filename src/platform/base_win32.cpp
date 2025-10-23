@@ -1,8 +1,4 @@
 #include "base_win32.hpp"
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#define DWORD_MAX 0xffffffffUL
 
 
 // =================================
@@ -106,6 +102,196 @@ NoType Mutex::Unlock()
 // ==========================
 // ======= Filesystem =======
 // ==========================
+
+static FileError _GetFileError()
+{
+	FileError error;
+
+	// TODO: Error handling for file operations
+	switch (GetLastError())
+	{
+		case ERROR_SUCCESS:
+			error = FileError::none;
+			break;
+		case ERROR_FILE_NOT_FOUND:
+		case ERROR_PATH_NOT_FOUND:
+		case ERROR_INVALID_NAME:
+		case ERROR_BAD_PATHNAME:
+		// TODO: I'm not sure about the two following cases
+		case ERROR_CANT_ACCESS_FILE:
+		case ERROR_CANT_RESOLVE_FILENAME:
+			error = FileError::notFound;
+			break;
+		case ERROR_ACCESS_DENIED:
+		case ERROR_FILE_ENCRYPTED:
+		case ERROR_FILE_READ_ONLY:
+			error = FileError::noPerm;
+			break;
+		case ERROR_FILE_EXISTS:
+		case ERROR_ALREADY_EXISTS:
+			error = FileError::exists;
+			break;
+		case ERROR_SHARING_VIOLATION:
+		case ERROR_PATH_BUSY:
+		case ERROR_BUSY:
+			error = FileError::busy;
+			break;
+		default:
+			error = FileError::unknown;
+			break;
+	}
+
+	return error;
+}
+
+File::File()
+{
+	m_error = FileError::none;
+	m_handle = INVALID_HANDLE_VALUE;
+}
+
+File::File(String8 path, FileFlags flags)
+{
+	this->Open(path, flags);
+}
+
+FileError File::Open(String8 path, FileFlags flags)
+{
+	DWORD desiredAccess = 0;
+	DWORD shareMode = 0;
+	DWORD creationDisposition = 0;
+	SECURITY_ATTRIBUTES securityAttributes = { SIZE_OF(SECURITY_ATTRIBUTES), nullptr, FALSE };
+
+	if (FlagCheck(flags, FileFlags::read))
+		desiredAccess |= FILE_GENERIC_READ;
+	if (FlagCheck(flags, FileFlags::write) || FlagCheck(flags, FileFlags::append))
+		desiredAccess |= FILE_GENERIC_WRITE;
+	if (FlagCheck(flags, FileFlags::append))
+		desiredAccess |= FILE_APPEND_DATA;
+
+	if (FlagCheck(flags, FileFlags::shareRead))
+		shareMode |= FILE_SHARE_READ;
+	if (FlagCheck(flags, FileFlags::shareWrite))
+		shareMode |= FILE_SHARE_WRITE;
+	if (FlagCheck(flags, FileFlags::inheritable))
+		securityAttributes.bInheritHandle = TRUE;
+
+	if (FlagCheck(flags, FileFlags::create))
+		creationDisposition = CREATE_ALWAYS;
+	else
+		creationDisposition = OPEN_EXISTING;
+
+	m_handle = CreateFileA(
+		path.CString(),
+		desiredAccess, shareMode,
+		&securityAttributes,
+		creationDisposition, FILE_ATTRIBUTE_NORMAL,
+		nullptr
+	);
+
+	m_error = _GetFileError();
+	return m_error;
+}
+
+NoType File::Close()
+{
+	if (m_handle != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(m_handle);
+		m_error = FileError::none;
+		m_handle = INVALID_HANDLE_VALUE;
+	}
+}
+
+FileError File::GetError()
+{
+	return m_error;
+}
+
+FileError File::Read(NoType* buff, Usize size)
+{
+	Byte* buffer = static_cast<Byte*>(buff);
+	Usize sizetoRead = Clamp(size, 0, this->GetSize());
+	Usize originalPos = this->GetPos();
+
+	// NOTE: Since 'ReadFile()' only takes a 32bit int as input (DWORD),
+	// we have to do multiple calls to it until we actually have read the
+	// entire file, if we want to support files larger than 4gb
+	Usize totalRead = 0;
+	while (totalRead < sizetoRead)
+	{
+		Usize remaining = sizetoRead - totalRead;
+		DWORD readSize = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
+		if (!ReadFile(m_handle, &buffer[totalRead], readSize, nullptr, nullptr))
+		{
+			m_error = _GetFileError();
+			break;
+		}
+
+		totalRead += static_cast<Usize>(readSize);
+		this->SetPosRelative(readSize);
+	}
+
+	this->SetPos(originalPos);
+	return m_error;
+}
+
+FileError File::Write(NoType* buff, Usize size)
+{
+	Byte* buffer = static_cast<Byte*>(buff);
+	Usize originalPos = this->GetPos();
+
+	// NOTE: Since 'WriteFile()' only takes a 32bit int as input (DWORD),
+	// we have to do multiple calls to it until the entire file is written,
+	// if we want to support buffers larger than 4gb
+	Usize totalWritten = 0;
+	while (totalWritten < size)
+	{
+		Usize remaining = size - totalWritten;
+		DWORD writeSize = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
+		if (!WriteFile(m_handle, &buffer[totalWritten], writeSize, nullptr, nullptr))
+		{
+			m_error = _GetFileError();
+			break;
+		}
+
+		totalWritten += static_cast<Usize>(writeSize);
+		this->SetPosRelative(writeSize);
+	}
+
+	this->SetPos(originalPos);
+	return m_error;
+}
+
+Usize File::GetSize()
+{
+	LARGE_INTEGER fileSize = {};
+	GetFileSizeEx(m_handle, &fileSize);
+	m_error = _GetFileError();
+	return static_cast<Usize>(fileSize.QuadPart);
+}
+
+Usize File::GetPos()
+{
+	LONG offset = 0;
+	SetFilePointer(m_handle, 0, &offset, FILE_CURRENT);
+	m_error = _GetFileError();
+	return offset;
+}
+
+NoType File::SetPos(Usize pos)
+{
+	LONG offset = static_cast<LONG>(pos);
+	SetFilePointer(m_handle, offset, nullptr, FILE_BEGIN);
+	m_error = _GetFileError();
+}
+
+NoType File::SetPosRelative(Usize pos)
+{
+	LONG offset = static_cast<LONG>(pos);
+	SetFilePointer(m_handle, offset, nullptr, FILE_CURRENT);
+	m_error = _GetFileError();
+}
 
 Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 {

@@ -435,6 +435,60 @@ struct Mutex
 // ======= Filesystem =======
 // ==========================
 
+enum struct FileError
+{
+	none,
+	busy,
+	exists,
+	notFound,
+	noPerm,
+	endOfFile,
+	unknown,
+};
+
+enum struct FileFlags : U32
+{
+	read        = 1 << 0,
+	write       = 1 << 1,
+	append      = 1 << 2,
+	shareRead   = 1 << 3,
+	shareWrite  = 1 << 4,
+	inheritable = 1 << 5,
+	create      = 1 << 6,
+
+	rdonly = read,
+	wronly = write,
+	rdwr   = read | write,
+};
+BASE_IMPL_BITFLAG(FileFlags)
+
+// Implemented per OS
+struct File;
+struct Directory;
+
+#if 0
+struct File
+{
+	File();
+	File(String8 path, FileFlags flags = FileFlags::rdonly);
+	FileError Open(String8 path, FileFlags flags);
+	NoType Close();
+	FileError GetError();
+
+	FileError Read(NoType* buff, Usize size);
+	FileError Write(NoType* buff, Usize size);
+
+	Usize GetSize();
+	Usize GetPos();
+	NoType SetPos(Usize pos);
+	NoType SetPosRelative(Usize pos);
+};
+
+struct Directory
+{
+};
+#endif
+
 Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator);
 String8 ReadEntireFileAsString(String8 path, IAllocator* allocator);
 Bool WriteEntireFile(String8 path, Slice<Byte> buffer);
