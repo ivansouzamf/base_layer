@@ -451,8 +451,8 @@ enum struct FileFlags : U32
 	read        = 1 << 0,
 	write       = 1 << 1,
 	append      = 1 << 2,
-	shareRead   = 1 << 3,
-	shareWrite  = 1 << 4,
+	shareRead   = 1 << 3, // Only supported on Win32
+	shareWrite  = 1 << 4, // Only supported on Win32
 	inheritable = 1 << 5,
 	create      = 1 << 6,
 

@@ -34,3 +34,32 @@ struct Mutex
 
 	pthread_mutex_t m_mutex;
 };
+
+
+// ==========================
+// ======= Filesystem =======
+// ==========================
+
+struct File
+{
+	File();
+	File(String8 path, FileFlags flags = FileFlags::rdonly);
+	FileError Open(String8 path, FileFlags flags);
+	NoType Close();
+	FileError GetError();
+
+	FileError Read(NoType* buff, Usize size);
+	FileError Write(NoType* buff, Usize size);
+
+	Usize GetSize();
+	Usize GetPos();
+	NoType SetPos(Usize pos);
+	NoType SetPosRelative(Usize pos);
+
+	int m_handle;
+	FileError m_error;
+};
+
+struct Directory
+{
+};
