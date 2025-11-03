@@ -272,7 +272,7 @@ struct DynArray
 		return !MemoryCompare(m_data, arr.m_data, SIZE_OF(T) * m_length);
 	}
 
-	T& operator[](Usize i)
+	inline T& operator[](Usize i)
 	{
 		ASSERT(i < m_length, "Trying to access element out of bounds");
 		return m_data[i];
@@ -377,7 +377,7 @@ struct Slice
 		return !MemoryCompare(m_data, slice.m_data, SIZE_OF(T) * m_size);
 	}
 
-	T& operator[](Usize i)
+	inline T& operator[](Usize i)
 	{
 		ASSERT(i < m_size, "Trying to access element out of bounds");
 		return m_data[i];
