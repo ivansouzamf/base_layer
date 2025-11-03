@@ -418,7 +418,7 @@ int main(int argc, char* argv[])
 	return EntryPoint(argc, argv);
 }
 #elif defined(WIN32_WINDOWS_MODE)
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	(void) hInstance;
 	(void) hPrevInstance;
