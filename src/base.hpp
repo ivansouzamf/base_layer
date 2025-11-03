@@ -16,10 +16,10 @@ namespace Bl
 // ======= Math =======
 // ====================
 
-constexpr F32 Math_PI = 3.14159265358979323846264338327950288f;
-constexpr F32 Math_TAU = 6.28318530717958647692528676655900576f;
-constexpr F32 Math_Log_Ten = 2.30258509299404568401799145468436421f;
-constexpr F32 Math_Log_Two = 0.693147180559945309417232121458176568f;
+constexpr F32 kMathPI = 3.14159265358979323846264338327950288f;
+constexpr F32 kMathTAU = 6.28318530717958647692528676655900576f;
+constexpr F32 kMathLogTen = 2.30258509299404568401799145468436421f;
+constexpr F32 kMathLogTwo = 0.693147180559945309417232121458176568f;
 
 // *** F32 Implementations ***
 inline F32 Round(F32 num) { return roundf(num); }
@@ -43,8 +43,8 @@ inline F32 Arccos(F32 cos) { return acosf(cos); }
 inline F32 Tan(F32 radians) { return tanf(radians); }
 inline F32 Arctan(F32 tan) { return atanf(tan); }
 inline F32 Arctan2(F32 y, F32 x) { return atan2f(y, x); }
-inline F32 ToRadians(F32 degrees) { return degrees * Math_TAU / 360.0f; }
-inline F32 ToDegrees(F32 radians) { return radians * 360.0f / Math_TAU; }
+inline F32 ToRadians(F32 degrees) { return degrees * kMathTAU / 360.0f; }
+inline F32 ToDegrees(F32 radians) { return radians * 360.0f / kMathTAU; }
 
 // *** F64 Implementations ***
 inline F64 Round(F64 num) { return round(num); }
@@ -68,8 +68,8 @@ inline F64 Arccos(F64 cos) { return acos(cos); }
 inline F64 Tan(F64 radians) { return tan(radians); }
 inline F64 Arctan(F64 tan) { return atan(tan); }
 inline F64 Arctan2(F64 y, F64 x) { return atan2(y, x); }
-inline F64 ToRadians(F64 degrees) { return degrees * Math_TAU / 360.0; }
-inline F64 ToDegrees(F64 radians) { return radians * 360.0 / Math_TAU; }
+inline F64 ToRadians(F64 degrees) { return degrees * kMathTAU / 360.0; }
+inline F64 ToDegrees(F64 radians) { return radians * 360.0 / kMathTAU; }
 
 // Disable warnings
 #if defined(BASE_CC_MSVC)
