@@ -205,17 +205,31 @@ struct String8
 	String8(const C8* cstring);
 	NoType Release();
 
+
 	NoType operator=(const C8* cstring);
-	NoType operator=(String8 string);
 	Bool operator==(String8 string);
 	Bool operator!=(String8 string);
-	C8& operator[](Usize i);
+
+	inline C8& operator[](Usize i)
+	{
+		ASSERT(i < m_length, "Trying to access element out of bounds");
+		return m_data[i];
+	}
+
 
 	NoType Reverse();
 	String8 Join(String8 string, IAllocator* allocator = nullptr);
 	String8 Clone(IAllocator* allocator = nullptr);
-	C8* CString();
-	Usize Length();
+
+	inline C8* CString();
+	{
+		return m_data;
+	}
+
+	inline Usize Length()
+	{
+		return m_length;
+	}
 
 	IAllocator* m_allocator;
 	C8* m_data;
@@ -299,12 +313,12 @@ struct DynArray
 		m_data[m_length - 1] = value;
 	}
 
-	Usize Length()
+	inline Usize Length()
 	{
 		return m_length;
 	}
 
-	Usize Reserved()
+	inline Usize Reserved()
 	{
 		return m_reserved;
 	}
@@ -384,7 +398,7 @@ struct Slice
 		return newSlice;
 	}
 
-	Usize Size()
+	inline Usize Size()
 	{
 		return m_size;
 	}

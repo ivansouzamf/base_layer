@@ -36,7 +36,7 @@ NoType ArenaAllocator::Release()
 
 NoType* ArenaAllocator::Alloc(Usize size)
 {
-	ASSERT(size <= m_current, "Trying to allocate more than the size of the Arena");
+	ASSERT(size + m_current <= m_size, "Trying to allocate more than the size of the Arena");
 	NoType* ptr = &m_buffer[m_current];
 	m_current += size;
 
@@ -101,16 +101,7 @@ NoType String8::Release()
 
 NoType String8::operator=(const C8* cstring)
 {
-	this->Release();
 	*this = String8(cstring);
-}
-
-NoType String8::operator=(String8 string)
-{
-	this->Release();
-	m_allocator = string.m_allocator;
-	m_data = string.m_data;
-	m_length = string.m_length;
 }
 
 Bool String8::operator==(String8 string)
@@ -121,12 +112,6 @@ Bool String8::operator==(String8 string)
 Bool String8::operator!=(String8 string)
 {
 	return !MemoryCompare(m_data, string.m_data, m_length);
-}
-
-C8& String8::operator[](Usize i)
-{
-	ASSERT(i < m_length, "Trying to access element out of bounds");
-	return m_data[i];
 }
 
 NoType String8::Reverse()
@@ -173,16 +158,6 @@ String8 String8::Clone(IAllocator* allocator)
 	MemoryCopy(newStr.m_data, m_data, m_length);
 
 	return newStr;
-}
-
-C8* String8::CString()
-{
-	return m_data;
-}
-
-Usize String8::Length()
-{
-	return m_length;
 }
 
 
