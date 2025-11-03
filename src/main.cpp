@@ -3,14 +3,14 @@
 
 S32 EntryPoint(S32 argc, C8* argv[])
 {
-    HeapAllocator heapAlloc;
+    Bl::HeapAllocator heapAlloc;
 
-    String8 hello = "Hello, World!";
+    Bl::String8 hello = "Hello, World!";
     printf("%s\n", hello.CString());
 
-    String8 exePath   = GetExePath(&heapAlloc);
-    String8 userDir   = GetUserDir(&heapAlloc);
-    String8 configDir = GetConfigDir(&heapAlloc);
+    Bl::String8 exePath   = Bl::GetExePath(&heapAlloc);
+    Bl::String8 userDir   = Bl::GetUserDir(&heapAlloc);
+    Bl::String8 configDir = Bl::GetConfigDir(&heapAlloc);
     printf(
         "Exe path   = %s\n"
         "User dir   = %s\n"
@@ -21,7 +21,7 @@ S32 EntryPoint(S32 argc, C8* argv[])
     for (S32 i = 0; i < argc; i += 1)
         printf("Argv[%i] = %s\n", i, argv[i]);
 
-    String8 fileContent = ReadEntireFileAsString("./src/base.cpp", &heapAlloc);
+    Bl::String8 fileContent = Bl::ReadEntireFileAsString("./src/base.cpp", &heapAlloc);
     printf(
         "### FILE DUMP ###\n"
         "%s\n"
@@ -29,9 +29,9 @@ S32 EntryPoint(S32 argc, C8* argv[])
         fileContent.CString()
     );
 
-    Vec4F myVec1 = { 1.0f, 2.0f, 3.0f, 4.0f };
-    Vec4F myVec2 = 5.0f;
-    Vec4F myVec3 = myVec1 * myVec2;
+    Bl::Vec4F myVec1 = { 1.0f, 2.0f, 3.0f, 4.0f };
+    Bl::Vec4F myVec2 = 5.0f;
+    Bl::Vec4F myVec3 = myVec1 * myVec2;
 
     return 0;
 }

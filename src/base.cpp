@@ -1,6 +1,8 @@
 #include "base.hpp"
 
 
+namespace Bl
+{
 // =================================
 // ======= Custom Allocators =======
 // =================================
@@ -184,6 +186,7 @@ String8 GetDirFromPath(String8 path, IAllocator* allocator)
 
 	return dir;
 }
+} // namespacee Bl
 
 
 // ------- OS Includes -------
@@ -193,7 +196,6 @@ S32 EntryPoint(S32 argc, C8* argv[]);
 #elif defined(BASE_OS_LINUX)
 	#include "platform/base_linux.cpp"
 #endif
-
 
 // ------- C++ Garbage -------
 extern "C"

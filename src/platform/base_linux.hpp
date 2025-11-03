@@ -3,6 +3,8 @@
 #include <pthread.h>
 
 
+namespace Bl
+{
 // =======================
 // ======= Threads =======
 // =======================
@@ -63,3 +65,4 @@ struct File
 struct Directory
 {
 };
+} // namespacee Bl

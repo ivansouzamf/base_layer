@@ -9,6 +9,8 @@
 #include <pthread.h>
 
 
+namespace Bl
+{
 // =================================
 // ======= Custom Allocators =======
 // =================================
@@ -308,6 +310,7 @@ String8 GetConfigDir(IAllocator* allocator)
 	home.Release();
 	return result;
 }
+} // namespacee Bl
 
 
 // =============================

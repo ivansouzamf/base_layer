@@ -6,6 +6,8 @@
 #define DWORD_MAX 0xffffffffUL
 
 
+namespace Bl
+{
 // =======================
 // ======= Threads =======
 // =======================
@@ -66,3 +68,4 @@ struct File
 struct Directory
 {
 };
+} // namespace Bl

@@ -1,6 +1,8 @@
 #include "base_win32.hpp"
 
 
+namespace Bl
+{
 // =================================
 // ======= Custom Allocators =======
 // =================================
@@ -397,6 +399,7 @@ String8 GetConfigDir(IAllocator* allocator)
 {
 	return _GetEnv("APPDATA", allocator);
 }
+} // namespacee Bl
 
 
 // =============================
