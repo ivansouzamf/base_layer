@@ -96,9 +96,11 @@ typedef void NoType;
 
 #define ArrayCopy(dst, src) MemoryCopy(dst, src, SIZE_OF(dst))
 #define ArrayZero(dst) MemoryZero(dst, SIZE_OF(dst))
+#define ArrayCompare(a, b) MemoryCompare(a, b, SIZE_OF(a))
 
 #define StructCopy(dst, src) MemoryCopy(&dst, &src, SIZE_OF(dst))
 #define StructZero(dst) MemoryZero(&dst, SIZE_OF(dst))
+#define StructCompare(a, b) MemoryCompare(&a, &b, SIZE_OF(a))
 
 #define Abs(num) (((num) < 0) ? -(num) : (num))
 #define Min(a, b) (((a) < (b)) ? (a) : (b))
