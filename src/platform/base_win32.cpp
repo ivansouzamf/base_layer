@@ -165,23 +165,39 @@ FileError File::Open(String8 path, FileFlags flags)
 	SECURITY_ATTRIBUTES securityAttributes = { SIZE_OF(SECURITY_ATTRIBUTES), nullptr, FALSE };
 
 	if (FlagCheck(flags, FileFlags::read))
+	{
 		desiredAccess |= FILE_GENERIC_READ;
+	}
 	if (FlagCheck(flags, FileFlags::write) || FlagCheck(flags, FileFlags::append))
+	{
 		desiredAccess |= FILE_GENERIC_WRITE;
+	}
 	if (FlagCheck(flags, FileFlags::append))
+	{
 		desiredAccess |= FILE_APPEND_DATA;
+	}
 
 	if (FlagCheck(flags, FileFlags::shareRead))
+	{
 		shareMode |= FILE_SHARE_READ;
+	}
 	if (FlagCheck(flags, FileFlags::shareWrite))
+	{
 		shareMode |= FILE_SHARE_WRITE;
+	}
 	if (FlagCheck(flags, FileFlags::inheritable))
+	{
 		securityAttributes.bInheritHandle = TRUE;
+	}
 
 	if (FlagCheck(flags, FileFlags::create))
+	{
 		creationDisposition = CREATE_ALWAYS;
+	}
 	else
+	{
 		creationDisposition = OPEN_EXISTING;
+	}
 
 	m_handle = CreateFileA(
 		path.CString(),
@@ -305,7 +321,9 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 		nullptr
 	);
 	if (file == INVALID_HANDLE_VALUE)
+	{
 		return Slice<Byte>(nullptr, nullptr, 0);
+	}
 
 	LARGE_INTEGER _fileSize;
 	if (!GetFileSizeEx(file, &_fileSize))
@@ -350,7 +368,9 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 		nullptr
 	);
 	if (file == INVALID_HANDLE_VALUE)
+	{
 		return false;
+	}
 
 	// NOTE: Since 'WriteFile()' only takes a 32bit int as input (DWORD),
 	// we have to do multiple calls to it until the entire file is written,
@@ -361,7 +381,9 @@ Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 		Usize remaining = buffer.Size() - totalWritten;
 		DWORD size = static_cast<DWORD>(Clamp(remaining, 0, DWORD_MAX));
 		if (!WriteFile(file, &buffer.m_data[totalWritten], size, nullptr, nullptr))
+		{
 			break;
+		}
 
 		totalWritten += static_cast<Usize>(size);
 		LARGE_INTEGER offset = { .QuadPart = static_cast<LONGLONG>(size) };
@@ -376,7 +398,9 @@ String8 GetExePath(IAllocator* allocator)
 {
 	String8 path = String8(allocator, MAX_PATH);
 	if (!GetModuleFileNameA(nullptr, path.CString(), MAX_PATH))
+	{
 		path.Release();
+	}
 
 	return path;
 }
@@ -385,7 +409,9 @@ static String8 _GetEnv(const C8* env, IAllocator* allocator)
 {
 	String8 result = String8(allocator, MAX_PATH);
 	if (GetEnvironmentVariable(env, result.CString(), MAX_PATH) == 0)
+	{
 		result.Release();
+	}
 
 	return result;
 }

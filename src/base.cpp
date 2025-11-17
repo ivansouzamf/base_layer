@@ -177,8 +177,12 @@ String8 GetDirFromPath(String8 path, IAllocator* allocator)
 {
 	Usize lastSlash = 0;
 	for (Usize i = 0; i < path.Length(); i += 1)
+	{
 		if (path[i] == BASE_PATH_SEPARATOR)
+		{
 			lastSlash = i;
+		}
+	}
 
 	String8 dir = path.Clone(allocator);
 	dir.m_length = lastSlash;

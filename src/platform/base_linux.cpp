@@ -75,7 +75,9 @@ NoType Thread::AssignCore(U32 core)
 NoType Thread::JoinMultiple(Thread* thrds, U32 thrdCount)
 {
 	for (U32 i = 0; i < thrdCount; i += 1)
+	{
 		pthread_join(thrds[i].m_thread, nullptr);
+	}
 }
 
 NoType Thread::Exit(U32 code)
@@ -165,24 +167,36 @@ FileError File::Open(String8 path, FileFlags flags)
 	int fileFlags = 0;
 
 	if (FlagCheck(flags, FileFlags::rdwr))
+	{
 		fileFlags |= O_RDWR;
+	}
 	else if (FlagCheck(flags, FileFlags::read))
+	{
 		fileFlags |= O_RDONLY;
+	}
 	else if (FlagCheck(flags, FileFlags::write))
+	{
 		fileFlags |= O_WRONLY;
+	}
 	if (FlagCheck(flags, FileFlags::append))
+	{
 		fileFlags |= O_APPEND;
+	}
 
 	// NOTE: Linux does not support mandatory file locking,
 	// therefore making it impossible to implement any of
 	// the sharing flags.
 	if (!FlagCheck(flags, FileFlags::inheritable))
+	{
 		fileFlags |= O_CLOEXEC;
+	}
 
 	// FIXME: 'open()' will fail if path contains a symlink.
 	// See docs for 'O_CREAT' and 'O_EXCL'.
 	if (FlagCheck(flags, FileFlags::create))
+	{
 		fileFlags |= O_CREAT | O_EXCL;
+	}
 
 	m_handle = open(path.CString(), fileFlags, 0);
 
@@ -244,14 +258,18 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 {
 	int fd = open(path.CString(), O_RDONLY, 0);
 	if (fd == -1)
+	{
 		return Slice<Byte>(nullptr, nullptr, 0);
+	}
 
 	Usize size = static_cast<Usize>(lseek64(fd, 0, SEEK_END));
 	lseek64(fd, 0, SEEK_SET);
 
 	Slice<Byte> buffer = Slice<Byte>(allocator, size);
 	if (read(fd, buffer.m_data, size) == -1)
+	{
 		buffer.Release();
+	}
 
 	close(fd);
 	return buffer;
@@ -260,8 +278,7 @@ Slice<Byte> ReadEntireFile(String8 path, IAllocator* allocator)
 Bool WriteEntireFile(String8 path, Slice<Byte> buffer)
 {
 	int fd = open(path.CString(), O_WRONLY, 0);
-	if (fd == -1)
-		return false;
+	if (fd == -1) return false;
 
 	ssize_t written = write(fd, buffer.m_data, buffer.Size());
 
@@ -283,7 +300,9 @@ String8 GetUserDir(IAllocator* allocator)
 {
 	C8* cdir = getenv("HOME");
 	if (cdir == nullptr)
+	{
 		return String8(nullptr, 0);
+	}
 
 	String8 dir = String8(cdir);
 	return dir.Clone(allocator);
@@ -303,7 +322,9 @@ String8 GetConfigDir(IAllocator* allocator)
 	String8 config = "/.config";
 	String8 home = GetUserDir(allocator);
 	if (home.Length() == 0)
+	{
 		return String8(nullptr, 0);
+	}
 
 	String8 result = home.Join(config, allocator);
 
