@@ -20,6 +20,7 @@ struct Thread
 	NoType AssignCore(U32 core);
 
 	static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
+	static NoType Yield();
 	static NoType Exit(U32 code = 0);
 
 	pthread_t m_thread;

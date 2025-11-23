@@ -69,6 +69,11 @@ NoType Thread::JoinMultiple(Thread* thrds, U32 thrdCount)
 	WaitForMultipleObjects(numOfThrds, handles, TRUE, INFINITE);
 }
 
+NoType Thread::Yield()
+{
+	SwitchToThread();
+}
+
 NoType Thread::Exit(U32 code)
 {
 	ExitThread(code);
@@ -98,6 +103,32 @@ Bool Mutex::TryLock()
 NoType Mutex::Unlock()
 {
 	LeaveCriticalSection(&m_critSec);
+}
+
+
+// ====================
+// ======= Time =======
+// ====================
+
+U64 GetPerformanceFrequency()
+{
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+
+	return static_cast<U64>(freq.QuadPart);
+}
+
+U64 GetPerformanceCounter()
+{
+	LARGE_INTEGER perfCount;
+	QueryPerformanceCounter(&perfCount);
+
+	return static_cast<U64>(perfCount.QuadPart);
+}
+
+NoType NormalSleep(U64 ms)
+{
+	Sleep(static_cast<DWORD>(ms));
 }
 
 
@@ -444,7 +475,11 @@ void _AssertRel(const C8* msg, const C8* file, const U32 line)
 #if defined(WIN32_CONSOLE_MODE)
 int main(int argc, char* argv[])
 {
-	return EntryPoint(argc, argv);
+	timeBeginPeriod(1);
+	int ret = EntryPoint(argc, argv);
+	timeEndPeriod(1);
+
+	return ret;
 }
 #elif defined(WIN32_WINDOWS_MODE)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -453,6 +488,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	(void) hPrevInstance;
 	(void) lpCmdLine;
 	(void) nShowCmd;
-	return EntryPoint(0, nullptr);
+
+	timeBeginPeriod(1);
+	int ret = EntryPoint(0, nullptr);
+	timeEndPeriod(1);
+
+	return ret;
 }
 #endif

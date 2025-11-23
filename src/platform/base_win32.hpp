@@ -1,10 +1,9 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#undef Yield
 #define DWORD_MAX 0xffffffffUL
-
 
 namespace Bl
 {
@@ -23,6 +22,7 @@ struct Thread
 	NoType AssignCore(U32 core);
 
 	static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
+	static NoType Yield();
 	static NoType Exit(U32 code = 0);
 
 	HANDLE m_handle;

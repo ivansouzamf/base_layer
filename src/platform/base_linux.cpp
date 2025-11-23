@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sched.h>
 #include <pthread.h>
+#include <time.h>
 
 
 namespace Bl
@@ -80,6 +81,11 @@ NoType Thread::JoinMultiple(Thread* thrds, U32 thrdCount)
 	}
 }
 
+NoType Thread::Yield()
+{
+	sched_yield();
+}
+
 NoType Thread::Exit(U32 code)
 {
 	pthread_exit(reinterpret_cast<void*>(code));
@@ -108,6 +114,40 @@ Bool Mutex::TryLock()
 NoType Mutex::Unlock()
 {
 	pthread_mutex_unlock(&m_mutex);
+}
+
+
+// ====================
+// ======= Time =======
+// ====================
+
+U64 GetPerformanceFrequency()
+{
+	return 1000000000;
+}
+
+U64 GetPerformanceCounter()
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	return static_cast<U64>((ts.tv_sec * 1000000000) + ts.tv_nsec);
+}
+
+NoType NormalSleep(U64 ms)
+{
+	struct timespec ts = {};
+	if (ms >= 1000)
+	{
+		ts.tv_sec = ms / 1000;
+		ts.tv_nsec = (ms - (ts.tv_sec * 1000)) * 1000000;
+	}
+	else
+	{
+		ts.tv_nsec = ms * 1000000;
+	}
+
+	nanosleep(&ts, nullptr);
 }
 
 

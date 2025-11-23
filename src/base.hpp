@@ -431,6 +431,7 @@ struct Thread
 	NoType AssignCore(U32 core);
 
 	static NoType JoinMultiple(Thread* thrds, U32 thrdCount);
+	static NoType Yield();
 	static NoType Exit(U32 code = 0);
 };
 
@@ -444,6 +445,17 @@ struct Mutex
 	NoType Unlock();
 };
 #endif
+
+
+// ====================
+// ======= Time =======
+// ====================
+
+U64 GetPerformanceFrequency();
+U64 GetPerformanceCounter();
+NoType NormalSleep(U64 us);
+NoType PreciseSleep(U64 us);
+NoType SpinlockSleep(U64 us);
 
 
 // ==========================

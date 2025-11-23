@@ -1,6 +1,5 @@
 #include "base.hpp"
 
-
 namespace Bl
 {
 // =================================
@@ -160,6 +159,56 @@ String8 String8::Clone(IAllocator* allocator)
 	MemoryCopy(newStr.m_data, m_data, m_length);
 
 	return newStr;
+}
+
+
+// ====================
+// ======= Time =======
+// ====================
+
+NoType PreciseSleep(U64 us)
+{
+	const U64 freq = GetPerformanceFrequency();
+	const U64 timeInFreq = us * (freq / 1000000);
+
+	U64 sleepTime = GetPerformanceCounter();
+
+	if (us > 2500)
+	{
+#if defined(BASE_OS_WIN32)
+		NormalSleep((us / 1000) - 1);
+#elif defined(BASE_OS_LINUX)
+		NormalSleep(us / 1000);
+#endif
+	}
+
+	U64 currTime = GetPerformanceCounter();
+	U64 lastTime = currTime;
+	sleepTime = currTime - sleepTime;
+
+	if (sleepTime > timeInFreq)
+	{
+		return;
+	}
+
+	while (currTime - lastTime < timeInFreq - sleepTime)
+	{
+		currTime = GetPerformanceCounter();
+		Thread::Yield();
+	}
+}
+
+NoType SpinlockSleep(U64 us)
+{
+	const U64 freq = GetPerformanceFrequency();
+	const U64 last = GetPerformanceCounter();
+	U64 curr = last;
+
+	while ((curr - last) / (freq / 1000000) < us)
+	{
+		curr = GetPerformanceCounter();
+		Thread::Yield();
+	}
 }
 
 
