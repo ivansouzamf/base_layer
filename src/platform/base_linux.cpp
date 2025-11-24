@@ -390,9 +390,13 @@ void _AssertRel(const C8* msg, const C8* file, const U32 line)
 	snprintf(finalMsg, SIZE_OF(finalMsg), "%s\n%s:%u\n", msg, file, line);
 
 	if (system("yad --help > /dev/null") == 0)
+	{
 		cmd = const_cast<C8*>(yadCmd);
+	}
 	else if (system("zenity --help > /dev/null") == 0)
+	{
 		cmd = const_cast<C8*>(zenityCmd);
+	}
 	else
 	{
 		// If we can't display a dialog window just print it on stderr
