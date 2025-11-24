@@ -453,7 +453,7 @@ struct Mutex
 
 U64 GetPerformanceFrequency();
 U64 GetPerformanceCounter();
-NoType NormalSleep(U64 us);
+NoType NormalSleep(U64 ms);
 NoType PreciseSleep(U64 us);
 NoType SpinlockSleep(U64 us);
 
